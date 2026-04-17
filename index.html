@@ -103,10 +103,7 @@ select option{background:var(--surface2);}
 .upload-hint{font-size:11px;color:var(--text-dim);margin-top:5px;}
 
 /* 사진 정렬 옵션 */
-.order-options{display:flex;gap:8px;margin-top:12px;}
-.order-chip{font-size:11px;padding:5px 12px;border-radius:99px;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;transition:all .15s;}
-.order-chip:hover{border-color:var(--accent2);}
-.order-chip.selected{border-color:var(--accent);background:rgba(212,168,67,.08);color:var(--accent);}
+
 
 .image-previews{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:7px;margin-top:14px;}
 .preview-item{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--border);}
@@ -240,7 +237,7 @@ select option{background:var(--surface2);}
       <div class="td">사진 9~10장 · 900~1,000자 · 키워드 7~9회</div>
     </div>
   </div>
-  <div class="sb-area" id="sb-area">
+  <div class="sb-area show" id="sb-area">
     <div class="field-group" style="margin-top:4px;">
       <label>노출 주제 (스마트블럭 타깃 — 직접 입력)</label>
       <input type="text" id="sb-topic" placeholder="예: 강릉 로컬 맛집 / 강릉 뷰 맛집 / 강릉 가족 외식">
@@ -364,18 +361,19 @@ select option{background:var(--surface2);}
     <div class="upload-icon">📷</div>
     <div class="upload-text"><strong>클릭해서 사진 선택</strong> 또는 드래그</div>
     <div class="upload-hint" id="upload-hint">JPG, PNG 여러 장 · 최대 25장</div>
+    <div style="margin-top:10px;font-size:11px;color:var(--text-muted);line-height:1.8;text-align:left;padding:10px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);">
+      📌 <strong style="color:var(--accent);font-weight:500;">사진 업로드 전 확인</strong><br>
+      · 사진 파일명에 번호를 지정해서 순서대로 업로드해주세요 <span style="color:var(--accent);">(필수)</span><br>
+      &nbsp;&nbsp;예: 1.jpg, 2.jpg, 3.jpg ... 또는 01_외관.jpg, 02_메뉴판.jpg<br>
+      · 파일명에 사진 설명을 넣으면 원고 품질이 올라가요 <span style="color:var(--text-dim);">(선택)</span><br>
+      &nbsp;&nbsp;예: 05_삼겹살굽는중.jpg, 12_김치찌개.jpg
+    </div>
   </div>
   <button type="button" onclick="document.getElementById('photo-input').click()" style="margin-top:8px;width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:9px;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
     📁 파일 탐색기에서 사진 선택
   </button>
 
-  <div style="margin-top:12px;">
-    <label style="margin-bottom:6px;">사진 순서</label>
-    <div class="order-options">
-      <div class="order-chip selected" onclick="selectOrder(this,'manual')" data-val="manual">📋 업로드 순서대로 (내가 정렬)</div>
-      <div class="order-chip" onclick="selectOrder(this,'auto')" data-val="auto">🤖 AI가 자동으로 최적 순서 배열</div>
-    </div>
-  </div>
+
 
   <div class="image-previews" id="image-previews"></div>
   <div class="image-count" id="image-count"></div>
@@ -435,8 +433,8 @@ select option{background:var(--surface2);}
 // ═══════════════════════════════════════════════
 let uploadedImages = [];
 let currentStyle = '존댓말';
-let currentType = 'popular';
-let currentOrder = 'manual';
+let currentType = 'smartblock';
+const currentOrder = 'manual'; // 항상 순서 유지
 
 // ── API 키 관리 ──
 function getApiKey() {
@@ -722,11 +720,6 @@ function selectStyle(el) {
   currentStyle = el.dataset.val;
 }
 
-function selectOrder(el, val) {
-  document.querySelectorAll('.order-chip').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');
-  currentOrder = val;
-}
 
 const conceptMap = {
   '친구 따라 방문': '강릉 사는 친구 추천으로 같이 방문했어요',
@@ -864,7 +857,12 @@ async function runGenerate() {
       ? `사진 ${uploadedImages.length}장을 먼저 모두 분석한 뒤, 블로그 원고 흐름에 최적화된 순서로 재배열하세요.
 일반적 흐름: 외관·입구 → 내부·분위기 → 메뉴판 → 음식 클로즈업 → 다양한 메뉴 → 디저트·음료 → 마무리
 원고 내 첫 줄에 "[사진 배열 순서: N-N-N...]" 형식으로 배열 순서를 명시하세요.`
-      : `업로드된 순서 그대로 사진1~사진${uploadedImages.length} 순으로 작성하세요.`;
+      : `## 사진 순서 규칙 (절대 준수)
+사진은 반드시 업로드된 순서 그대로만 사용하세요.
+사진1 → 사진2 → 사진3 ... → 사진${uploadedImages.length} 순서를 절대 바꾸지 마세요.
+사진 번호를 건너뛰거나 순서를 재배열하는 것은 엄격히 금지됩니다.
+원고에 사진 위치표시자는 반드시 사진1, 사진2, 사진3 순서대로 등장해야 합니다.
+예: 사진1 → 사진2 → 사진3 (O) / 사진3 → 사진1 → 사진5 (X, 절대 금지)`;
 
     // ── 스마트블럭용 전용 포맷 (실제 원고 예시 기반) ──
     const smartblockFormat = `
@@ -1054,31 +1052,41 @@ ${placeUrl ? `마지막에 플레이스 링크: ${placeUrl}` : ''}
     const systemPrompt = currentType === 'smartblock' ? smartblockFormat : standardFormat;
 
 
-    const imageContents = uploadedImages.slice(0, 25).map(img => ({
-      type:'image',
-      source:{
-        type:'base64',
-        media_type: img.dataUrl.match(/data:(image\/\w+)/)[1],
-        data: img.dataUrl.split(',')[1]
-      }
-    }));
+    // 사진 번호를 명시하며 전송 - 각 사진 사이에 번호 텍스트 삽입
+    const imgs = uploadedImages.slice(0, 25);
+    const imageContents = [];
+    imgs.forEach((img, i) => {
+      // 각 사진 앞에 번호 텍스트 삽입
+      imageContents.push({type:'text', text:`[사진${i+1}]`});
+      imageContents.push({
+        type:'image',
+        source:{
+          type:'base64',
+          media_type: img.dataUrl.match(/data:(image\/\w+)/)[1],
+          data: img.dataUrl.split(',')[1]
+        }
+      });
+    });
+
+    const autoOrderPrefix = '';
 
     const userText = `상호명: ${storeName}
 주 키워드: ${keyword}
 원고 유형: ${{smartblock:'스마트블럭용',popular:'맛집인기글용',cafe:'카페용'}[currentType]}
 ${currentType==='smartblock'&&sbTopic?`노출 주제: ${sbTopic}`:''}
 방문 컨셉: ${concept||'자연스럽게 설정해주세요'}
-사진 정렬: ${currentOrder==='auto'?'AI 자동 배열':'업로드 순서 유지'}
+사진 순서: 업로드 순서 그대로 사진1~사진${imgs.length} 순서 절대 변경 금지
 ${placeUrl?`플레이스 링크: ${placeUrl}`:''}
 ${storeInfo?`
-[업체 정보 - 아래 정보를 지도 섹션 주소/연락처/영업시간에 반드시 채워넣을 것]
+[업체 정보 - 지도 섹션 주소/연락처/영업시간에 반드시 채워넣을 것]
 ${storeInfo}`:`
 [업체 정보 없음 - 웹검색으로 ${storeName}의 주소, 연락처, 영업시간을 찾아서 지도 섹션에 채워넣을 것]`}
 ${extraMemo?`
 [추가 메모]
 ${extraMemo}`:''}
+${autoOrderPrefix}
 
-사진 ${imageContents.length}장으로 네이버 블로그 원고를 작성해주세요.`;
+사진 ${imgs.length}장으로 네이버 블로그 원고를 작성해주세요.`;
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
