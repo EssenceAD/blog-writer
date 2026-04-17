@@ -306,7 +306,7 @@ select option{background:var(--surface2);}
 <div class="card">
   <div class="card-title">방문 컨셉</div>
   <label>방문 상황 *</label>
-  <textarea id="concept" placeholder="예: 제주에서 강릉 사는 친구네 놀러갔다가 들렀다"></textarea>
+  <textarea id="concept" placeholder="예: 친구 추천으로 방문 / 여행 중 현지인이 알려줘서 / 숙소 근처라 들렀다"></textarea>
   <div class="concept-chips">
     <div class="concept-chip" onclick="setConcept(this)">친구 따라 방문</div>
     <div class="concept-chip" onclick="setConcept(this)">가족 여행 중</div>
@@ -722,17 +722,17 @@ function selectStyle(el) {
 
 
 const conceptMap = {
-  '친구 따라 방문': '강릉 사는 친구 추천으로 같이 방문했어요',
+  '친구 따라 방문': '친구 추천으로 같이 방문했어요',
   '가족 여행 중': '가족 여행 중 현지인이 추천해줘서 들렀어요',
-  '연인과 데이트': '연인과 강릉 데이트 중에 들린 맛집이에요',
+  '연인과 데이트': '연인과 데이트하다가 들린 맛집이에요',
   '혼자 출장': '혼자 출장 왔다가 숙소 사장님 추천으로 찾아갔어요',
-  '현지인 추천': '현지 지인이 강릉 오면 꼭 가라고 해서 방문했어요',
+  '현지인 추천': '현지 지인이 꼭 가라고 해서 방문했어요',
   '재방문': '전에 너무 맛있어서 이번에 또 찾아온 재방문이에요',
   'SNS 보고 방문': '인스타에서 사진 보고 검색해서 직접 찾아갔어요',
   '지인 생일 모임': '지인 생일 기념으로 다 같이 방문했어요',
   '회사 팀회식': '팀회식 장소로 예약해서 동료들이랑 갔어요',
   '부모님 모시고': '부모님 모시고 특별한 한 끼 먹으러 찾아갔어요',
-  '여행 마지막 날': '강릉 여행 마지막 날 아쉬운 마음에 들렀어요',
+  '여행 마지막 날': '여행 마지막 날 아쉬운 마음에 들렀어요',
   '숙소 근처 찾다가': '숙소 근처에서 검색하다가 평점 좋길래 들어갔어요'
 };
 function setConcept(el) {
