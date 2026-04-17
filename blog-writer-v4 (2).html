@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>맛집 블로그 원고 작성기 v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e0d0b; --surface:#171614; --surface2:#1f1d1a; --border:#2e2b26;
+  --accent:#d4a843; --accent2:#b8892e; --text:#e8e2d8; --text-muted:#7a7367;
+  --text-dim:#4a4640; --success:#5a9e6f; --info:#4a8fb5; --warn:#c9843a;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;min-height:100vh;line-height:1.7;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:48px 24px 80px;}
+
+/* 헤더 */
+.header{margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:28px;}
+.header-tag{display:inline-block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent2);padding:4px 10px;border-radius:2px;margin-bottom:14px;}
+.header h1{font-family:'Noto Serif KR',serif;font-size:clamp(22px,4vw,34px);font-weight:700;letter-spacing:-.02em;}
+.header h1 span{color:var(--accent);}
+.header p{margin-top:10px;color:var(--text-muted);font-size:13px;}
+
+/* 카드 */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;margin-bottom:14px;}
+.card-title{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* 폼 요소 */
+label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:5px;font-weight:400;}
+input[type="text"],textarea,select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;padding:9px 13px;outline:none;transition:border-color .2s;}
+input[type="text"]:focus,textarea:focus,select:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:72px;line-height:1.7;}
+select option{background:var(--surface2);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.field-group{margin-bottom:12px;}
+
+/* 원고 유형 */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:relative;z-index:10;}
+.type-card{border:1.5px solid var(--border);border-radius:8px;padding:14px 12px;cursor:pointer;transition:all .18s;position:relative;z-index:10;user-select:none;}
+.type-card:hover{border-color:var(--accent2);}
+.type-card.selected{border-color:var(--accent);background:rgba(212,168,67,.06);}
+.type-card .ti{font-size:18px;margin-bottom:7px;pointer-events:none;}
+.type-card .tn{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;pointer-events:none;}
+.type-card .td{font-size:11px;color:var(--text-dim);line-height:1.5;pointer-events:none;}
+.type-card.selected .tn{color:var(--accent);}
+.type-card .dot{position:absolute;top:9px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .15s;pointer-events:none;}
+.type-card.selected .dot{opacity:1;}
+
+/* 스블 주제 영역 */
+.sb-area{margin-top:14px;display:none;}
+.sb-area.show{display:block;}
+
+/* 업체 저장/불러오기 */
+.store-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;}
+.store-row .field-group{flex:1;margin-bottom:0;}
+.icon-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:9px 13px;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:5px;height:38px;}
+.icon-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+.icon-btn:disabled{opacity:.4;cursor:not-allowed;}
+.icon-btn .spin{width:11px;height:11px;border:1.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.icon-btn.loading .spin{display:block;}
+.icon-btn.loading .icon{display:none;}
+
+/* 저장된 업체 드롭다운 */
+.saved-list{background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:10px;display:none;}
+.saved-list.show{display:block;}
+.saved-list-header{padding:8px 12px;font-size:11px;color:var(--text-dim);letter-spacing:.08em;background:var(--surface2);border-bottom:1px solid var(--border);}
+.saved-item{padding:10px 14px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.saved-item:last-child{border-bottom:none;}
+.saved-item:hover{background:var(--surface2);}
+.saved-item-name{font-size:13px;color:var(--text);}
+.saved-item-meta{font-size:11px;color:var(--text-dim);}
+.saved-item-del{font-size:11px;color:#ff6b6b;padding:2px 6px;border-radius:3px;cursor:pointer;opacity:0;transition:opacity .15s;}
+.saved-item:hover .saved-item-del{opacity:1;}
+
+/* 업체 정보 패널 */
+.store-info-panel{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:none;margin-bottom:10px;}
+.store-info-panel.show{display:block;}
+.panel-label{font-size:10px;letter-spacing:.1em;color:var(--info);text-transform:uppercase;margin-bottom:6px;font-weight:500;display:flex;align-items:center;justify-content:space-between;}
+.refresh-hint{font-size:10px;color:var(--text-dim);margin-top:6px;}
+
+/* 네이버 검색 영역 */
+.naver-bar{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px;}
+.naver-bar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.naver-tag{font-size:10px;letter-spacing:.12em;color:var(--info);text-transform:uppercase;font-weight:500;}
+.naver-result{font-size:12px;color:var(--text-muted);line-height:1.8;display:none;}
+.naver-result.show{display:block;}
+.naver-topic-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.naver-chip{font-size:11px;padding:4px 10px;border-radius:99px;background:rgba(74,143,181,.12);border:1px solid rgba(74,143,181,.3);color:var(--info);cursor:pointer;transition:all .15s;}
+.naver-chip:hover,.naver-chip.active{background:rgba(74,143,181,.25);border-color:var(--info);}
+
+/* 사진 업로드 */
+.upload-zone{border:1.5px dashed var(--border);border-radius:var(--radius);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);position:relative;}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(212,168,67,.03);}
+.upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:26px;margin-bottom:9px;opacity:.5;}
+.upload-text{font-size:13px;color:var(--text-muted);}
+.upload-text strong{color:var(--accent);font-weight:500;}
+.upload-hint{font-size:11px;color:var(--text-dim);margin-top:5px;}
+
+/* 사진 정렬 옵션 */
+.order-options{display:flex;gap:8px;margin-top:12px;}
+.order-chip{font-size:11px;padding:5px 12px;border-radius:99px;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;transition:all .15s;}
+.order-chip:hover{border-color:var(--accent2);}
+.order-chip.selected{border-color:var(--accent);background:rgba(212,168,67,.08);color:var(--accent);}
+
+.image-previews{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:7px;margin-top:14px;}
+.preview-item{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.preview-item img{width:100%;height:100%;object-fit:cover;}
+.order-badge{position:absolute;top:3px;left:3px;background:rgba(0,0,0,.78);color:var(--accent);font-size:10px;font-weight:500;padding:2px 5px;border-radius:3px;font-family:monospace;}
+.remove-btn{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.78);color:#ff6b6b;border:none;cursor:pointer;font-size:11px;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.preview-item:hover .remove-btn{opacity:1;}
+.image-count{font-size:12px;color:var(--text-muted);margin-top:9px;text-align:right;}
+
+/* 문체 칩 */
+.option-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.option-chip{border:1px solid var(--border);border-radius:6px;padding:8px 10px;cursor:pointer;text-align:center;font-size:12px;color:var(--text-muted);transition:all .15s;user-select:none;}
+.option-chip:hover{border-color:var(--accent2);color:var(--text);}
+.option-chip.selected{border-color:var(--accent);background:rgba(212,168,67,.08);color:var(--accent);font-weight:500;}
+
+/* 방문 컨셉 칩 */
+.concept-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.concept-chip{font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;transition:all .15s;}
+.concept-chip:hover{border-color:var(--accent2);color:var(--text-muted);}
+
+/* 생성 버튼 */
+.submit-btn{width:100%;background:var(--accent);color:#0e0d0b;border:none;border-radius:var(--radius);padding:15px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:all .2s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.submit-btn:hover:not(:disabled){background:#e8b84a;transform:translateY(-1px);box-shadow:0 4px 20px rgba(212,168,67,.25);}
+.submit-btn:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed;transform:none;}
+
+/* 진행 */
+.progress-area{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;margin-top:14px;display:none;}
+.progress-area.show{display:block;}
+.progress-label{font-size:12px;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.spinner{width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.progress-bar-track{height:3px;background:var(--border);border-radius:99px;overflow:hidden;}
+.progress-bar-fill{height:100%;border-radius:99px;width:0%;transition:width .4s ease;background-image:linear-gradient(90deg,var(--accent2),var(--accent),var(--accent2));background-size:200% 100%;animation:shimmer 1.5s infinite;}
+@keyframes shimmer{0%{background-position:200% center;}100%{background-position:-200% center;}}
+
+/* 결과 */
+.result-area{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-top:14px;overflow:hidden;display:none;}
+.result-area.show{display:block;}
+.result-header{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.result-badge{font-size:11px;letter-spacing:.1em;color:var(--success);font-weight:500;display:flex;align-items:center;gap:6px;}
+.result-badge::before{content:'✓';background:var(--success);color:white;width:15px;height:15px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;}
+.result-actions{display:flex;gap:7px;}
+.action-btn{background:var(--bg);border:1px solid var(--border);color:var(--text-muted);padding:5px 12px;border-radius:5px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.action-btn:hover{border-color:var(--accent);color:var(--accent);}
+.action-btn.primary{background:var(--accent);border-color:var(--accent);color:#0e0d0b;font-weight:500;}
+.action-btn.primary:hover{background:#e8b84a;color:#0e0d0b;}
+.char-count{font-size:11px;color:var(--text-dim);padding:7px 18px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;gap:14px;}
+.char-count span{color:var(--accent);font-weight:500;}
+#result-text{width:100%;background:transparent;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;padding:18px;outline:none;resize:none;min-height:500px;line-height:1.9;}
+
+/* 토스트 */
+.api-key-saved{border-color:var(--success) !important;}
+.api-key-saved .card-title{color:var(--success) !important;}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--success);color:white;padding:9px 18px;border-radius:99px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;z-index:100;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* 저장 버튼 */
+.save-store-btn{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 0;font-family:'Noto Sans KR',sans-serif;transition:opacity .15s;}
+.save-store-btn:hover{opacity:.7;}
+
+@media(max-width:600px){.field-row,.type-grid{grid-template-columns:1fr;}.option-grid{grid-template-columns:repeat(2,1fr);}.result-header{flex-direction:column;gap:8px;align-items:flex-start;}}
+
+/* ── 모달 ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:560px;max-height:82vh;overflow-y:auto;transform:translateY(16px);transition:transform .25s;}
+.modal-overlay.show .modal{transform:translateY(0);}
+.modal-header{padding:20px 22px 0;display:flex;align-items:flex-start;justify-content:space-between;}
+.modal-title{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;line-height:1.4;}
+.modal-title span{color:var(--accent);}
+.modal-close{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:2px 6px;line-height:1;}
+.modal-close:hover{color:var(--text-muted);}
+.modal-body{padding:16px 22px 22px;}
+.modal-desc{font-size:12px;color:var(--text-muted);margin-bottom:16px;line-height:1.7;}
+.modal-section-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--info);font-weight:500;margin-bottom:10px;}
+.topic-modal-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.topic-modal-chip{padding:8px 14px;border-radius:6px;border:1.5px solid var(--border);font-size:12px;color:var(--text-muted);cursor:pointer;transition:all .15s;}
+.topic-modal-chip:hover{border-color:var(--accent2);color:var(--text);}
+.topic-modal-chip.selected{border-color:var(--accent);background:rgba(212,168,67,.1);color:var(--accent);font-weight:500;}
+.modal-raw{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:11px;color:var(--text-dim);line-height:1.8;max-height:180px;overflow-y:auto;white-space:pre-wrap;margin-bottom:16px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+.modal-skip{background:none;border:1px solid var(--border);color:var(--text-muted);padding:9px 16px;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
+.modal-skip:hover{border-color:var(--accent2);color:var(--text);}
+.modal-confirm{background:var(--accent);border:none;color:#0e0d0b;padding:9px 20px;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.modal-confirm:hover{background:#e8b84a;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div class="header-tag">Blog Writer Pro v3</div>
+  <h1>맛집 블로그<br><span>원고 작성기</span></h1>
+  <p>업체 저장/불러오기 · 네이버 노출 주제 파악 · 사진 자동 순서 배열</p>
+</div>
+
+<!-- API 키 입력 -->
+<div class="card" id="api-key-card">
+  <div class="card-title">API 키 설정</div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+    Anthropic API 키를 입력하면 이 브라우저에 저장돼요. 다음에 접속할 때 자동으로 불러와요.<br>
+    키 발급: <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input type="password" id="api-key-input" placeholder="sk-ant-..." style="flex:1;" oninput="onApiKeyInput()">
+    <button class="icon-btn" onclick="saveApiKey()" id="api-save-btn" style="white-space:nowrap;height:38px;color:var(--text-muted);">저장</button>
+  </div>
+  <div id="api-key-status" style="font-size:11px;margin-top:8px;"></div>
+</div>
+
+<!-- ① 원고 유형 -->
+<div class="card">
+  <div class="card-title">원고 유형 선택</div>
+  <div class="type-grid">
+    <div class="type-card" id="type-smartblock">
+      <div class="dot"></div>
+      <div class="ti">🧩</div>
+      <div class="tn">스마트블럭용</div>
+      <div class="td">특정 주제 스마트블럭 상위노출 타깃</div>
+    </div>
+    <div class="type-card selected"  id="type-popular">
+      <div class="dot"></div>
+      <div class="ti">⭐</div>
+      <div class="tn">맛집 인기글용</div>
+      <div class="td">모통 주 키워드 기준 인기글 노출</div>
+    </div>
+    <div class="type-card"  id="type-cafe">
+      <div class="dot"></div>
+      <div class="ti">☕</div>
+      <div class="tn">카페용</div>
+      <div class="td">사진 9~10장 · 900~1,000자 · 키워드 7~9회</div>
+    </div>
+  </div>
+  <div class="sb-area" id="sb-area">
+    <div class="field-group" style="margin-top:4px;">
+      <label>노출 주제 (스마트블럭 타깃 — 직접 입력)</label>
+      <input type="text" id="sb-topic" placeholder="예: 강릉 로컬 맛집 / 강릉 뷰 맛집 / 강릉 가족 외식">
+      <div style="font-size:11px;color:var(--text-dim);margin-top:5px;">※ 원고 생성 버튼을 누르면 자동으로 현재 노출 주제를 파악해 보여드려요</div>
+    </div>
+  </div>
+</div>
+
+<!-- ③ 업체 정보 -->
+<div class="card">
+  <div class="card-title">업체 정보</div>
+
+  <!-- 저장된 업체 목록 -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <label style="margin-bottom:0;">저장된 업체 불러오기</label>
+    <button class="icon-btn" onclick="toggleSavedList()" id="saved-list-btn" style="font-size:11px;">
+      <span class="icon">📂 저장된 업체 보기</span>
+    </button>
+  </div>
+  <div class="saved-list" id="saved-list">
+    <div class="saved-list-header">저장된 업체 목록</div>
+    <div id="saved-list-items"></div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-group">
+      <label>주 키워드 *</label>
+      <input type="text" id="keyword" placeholder="예: 강릉 유명 맛집 참피온양념치킨">
+    </div>
+    <div class="field-group">
+      <label>상호명 *</label>
+      <input type="text" id="store-name" placeholder="예: 참피온양념치킨" oninput="onStoreNameInput()">
+    </div>
+  </div>
+
+  <div class="field-group">
+    <label>네이버 플레이스 주소 (URL)</label>
+    <input type="text" id="place-url" placeholder="예: https://naver.me/xxxx 또는 네이버 플레이스 링크">
+  </div>
+
+  <!-- 업체 정보 자동검색 -->
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+    <button class="icon-btn" onclick="searchStoreInfo()" id="search-btn" style="flex:1;">
+      <span class="icon">🔄 업체 정보 자동검색 (매번 갱신)</span>
+      <span class="spin"></span>
+    </button>
+    <button class="save-store-btn" onclick="saveCurrentStore()">+ 이 업체 저장</button>
+  </div>
+
+  <div class="store-info-panel" id="store-info-panel">
+    <div class="panel-label">
+      <span>웹검색으로 파악한 업체 정보</span>
+      <span style="font-size:10px;color:var(--text-dim);" id="search-timestamp"></span>
+    </div>
+    <textarea id="store-info-editable" style="min-height:100px;font-size:12px;" placeholder="자동검색 결과가 여기에 표시됩니다"></textarea>
+    <div class="refresh-hint">※ 직접 수정 가능 · 메뉴 변경 시 재검색하면 자동 갱신됩니다</div>
+  </div>
+
+  <div class="field-group" style="margin-top:8px;">
+    <label>추가 메모 (선택)</label>
+    <textarea id="extra-memo" placeholder="강조할 이벤트, 시즌 메뉴, 특이사항 등" style="min-height:52px;"></textarea>
+  </div>
+</div>
+
+<!-- ④ 방문 컨셉 -->
+<div class="card">
+  <div class="card-title">방문 컨셉</div>
+  <label>방문 상황 *</label>
+  <textarea id="concept" placeholder="예: 제주에서 강릉 사는 친구네 놀러갔다가 들렀다"></textarea>
+  <div class="concept-chips">
+    <div class="concept-chip" onclick="setConcept(this)">친구 따라 방문</div>
+    <div class="concept-chip" onclick="setConcept(this)">가족 여행 중</div>
+    <div class="concept-chip" onclick="setConcept(this)">연인과 데이트</div>
+    <div class="concept-chip" onclick="setConcept(this)">혼자 출장</div>
+    <div class="concept-chip" onclick="setConcept(this)">현지인 추천</div>
+    <div class="concept-chip" onclick="setConcept(this)">재방문</div>
+    <div class="concept-chip" onclick="setConcept(this)">SNS 보고 방문</div>
+    <div class="concept-chip" onclick="setConcept(this)">지인 생일 모임</div>
+    <div class="concept-chip" onclick="setConcept(this)">회사 팀회식</div>
+    <div class="concept-chip" onclick="setConcept(this)">부모님 모시고</div>
+    <div class="concept-chip" onclick="setConcept(this)">여행 마지막 날</div>
+    <div class="concept-chip" onclick="setConcept(this)">숙소 근처 찾다가</div>
+  </div>
+</div>
+
+<!-- ⑤ 문체 & 설정 -->
+<div class="card">
+  <div class="card-title">문체 & 설정</div>
+  <label style="margin-bottom:10px;">문체 스타일</label>
+  <div class="option-grid" style="margin-bottom:16px;">
+    <div class="option-chip selected" onclick="selectStyle(this)" data-val="존댓말">존댓말<br><small style="font-size:10px;color:var(--text-dim)">~했어요, ~더라고요</small></div>
+    <div class="option-chip" onclick="selectStyle(this)" data-val="반말">반말<br><small style="font-size:10px;color:var(--text-dim)">~했음, ~더라</small></div>
+    <div class="option-chip" onclick="selectStyle(this)" data-val="혼합">혼합<br><small style="font-size:10px;color:var(--text-dim)">자연스럽게 섞기</small></div>
+  </div>
+  <div class="field-row">
+    <div class="field-group">
+      <label>글자수 목표</label>
+      <select id="length">
+        <option value="1000">1,000자</option>
+        <option value="1500" selected>1,500자</option>
+        <option value="2000">2,000자</option>
+        <option value="2500">2,500자</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>사진당 서술 방식</label>
+      <select id="photo-style">
+        <option value="2lines">사진당 2줄씩</option>
+        <option value="free">자유롭게</option>
+        <option value="4lines">사진당 4줄씩</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ⑥ 사진 업로드 -->
+<div class="card">
+  <div class="card-title">사진 업로드</div>
+  <div class="upload-zone" id="upload-zone">
+    <input type="file" id="photo-input" multiple accept="image/*" onchange="handleFiles(this.files)">
+    <div class="upload-icon">📷</div>
+    <div class="upload-text"><strong>클릭해서 사진 선택</strong> 또는 드래그</div>
+    <div class="upload-hint" id="upload-hint">JPG, PNG 여러 장 · 최대 25장</div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <label style="margin-bottom:6px;">사진 순서</label>
+    <div class="order-options">
+      <div class="order-chip selected" onclick="selectOrder(this,'manual')" data-val="manual">📋 업로드 순서대로 (내가 정렬)</div>
+      <div class="order-chip" onclick="selectOrder(this,'auto')" data-val="auto">🤖 AI가 자동으로 최적 순서 배열</div>
+    </div>
+  </div>
+
+  <div class="image-previews" id="image-previews"></div>
+  <div class="image-count" id="image-count"></div>
+</div>
+
+<button class="submit-btn" id="submit-btn" onclick="generateArticle()">
+  ✦ 원고 자동 생성
+</button>
+
+<div class="progress-area" id="progress-area">
+  <div class="progress-label">
+    <div class="spinner"></div>
+    <span id="progress-label-text">준비 중...</span>
+  </div>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar"></div></div>
+</div>
+
+<div class="result-area" id="result-area">
+  <div class="result-header">
+    <div class="result-badge">원고 생성 완료</div>
+    <div class="result-actions">
+      <button class="action-btn" onclick="resetAll()">↺ 새 원고</button>
+      <button class="action-btn" onclick="copyText()">⎘ 복사</button>
+      <button class="action-btn primary" onclick="downloadTxt()">↓ TXT 다운로드</button>
+    </div>
+  </div>
+  <div class="char-count" id="char-count-bar"></div>
+  <textarea id="result-text" oninput="updateCharCount()"></textarea>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- 네이버 노출 주제 모달 -->
+<div class="modal-overlay" id="topic-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">현재 <span>네이버 노출 주제</span> 확인</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc">주 키워드로 네이버 모바일을 분석했어요. 아래에서 이번 원고에 쓸 스마트블럭 주제를 선택하거나, 직접 입력한 뒤 원고 생성을 진행하세요.</div>
+      <div class="modal-section-label">현재 노출 중인 주제</div>
+      <div class="topic-modal-chips" id="topic-modal-chips"></div>
+      <div class="modal-section-label">직접 입력</div>
+      <input type="text" id="modal-topic-input" placeholder="직접 주제 입력 또는 위에서 선택" style="margin-bottom:14px;">
+      <div class="modal-section-label">분석 상세 내용</div>
+      <div class="modal-raw" id="modal-raw-text"></div>
+      <div class="modal-actions">
+        <button class="modal-skip" onclick="proceedWithoutTopic()">주제 없이 그냥 생성</button>
+        <button class="modal-confirm" onclick="confirmTopicAndGenerate()">이 주제로 원고 생성 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// 상태
+// ═══════════════════════════════════════════════
+let uploadedImages = [];
+let currentStyle = '존댓말';
+let currentType = 'popular';
+let currentOrder = 'manual';
+
+// ── API 키 관리 ──
+function getApiKey() {
+  return localStorage.getItem('anthropic_api_key') || '';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    showToast('올바른 API 키 형식이 아니에요 (sk-ant-로 시작)', '#c9843a');
+    return;
+  }
+  localStorage.setItem('anthropic_api_key', key);
+  updateApiKeyUI(key);
+  showToast('API 키가 저장되었습니다 ✓');
+}
+
+function onApiKeyInput() {
+  const key = document.getElementById('api-key-input').value.trim();
+  const btn = document.getElementById('api-save-btn');
+  btn.style.borderColor = key.startsWith('sk-ant-') ? 'var(--success)' : 'var(--border)';
+}
+
+function updateApiKeyUI(key) {
+  const card = document.getElementById('api-key-card');
+  const status = document.getElementById('api-key-status');
+  const input = document.getElementById('api-key-input');
+  if (key) {
+    card.classList.add('api-key-saved');
+    status.innerHTML = '<span style="color:var(--success)">✓ API 키 저장됨 — ' + key.substring(0,12) + '...</span> <button onclick="clearApiKey()" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer;margin-left:8px;">삭제</button>';
+    input.value = key;
+    input.type = 'password';
+  } else {
+    card.classList.remove('api-key-saved');
+    status.textContent = '';
+  }
+}
+
+function clearApiKey() {
+  localStorage.removeItem('anthropic_api_key');
+  document.getElementById('api-key-input').value = '';
+  updateApiKeyUI('');
+  showToast('API 키가 삭제되었습니다');
+}
+
+function checkApiKey() {
+  const key = getApiKey();
+  if (!key) {
+    showToast('먼저 API 키를 입력하고 저장해주세요', '#c9843a');
+    document.getElementById('api-key-input').focus();
+    document.getElementById('api-key-card').scrollIntoView({behavior:'smooth'});
+    return false;
+  }
+  return true;
+}
+
+// 원고 유형 카드 클릭 이벤트 (onclick 대신 addEventListener로 확실하게)
+document.addEventListener('DOMContentLoaded', function() {
+  // 원고 유형 카드 클릭
+  ['smartblock','popular','cafe'].forEach(type => {
+    const el = document.getElementById('type-' + type);
+    if (el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        selectType(type);
+      });
+    }
+  });
+  // 저장된 API 키 불러오기
+  const savedKey = getApiKey();
+  if (savedKey) updateApiKeyUI(savedKey);
+});
+
+// ═══════════════════════════════════════════════
+// 업체 저장/불러오기 (localStorage)
+// ═══════════════════════════════════════════════
+function getSavedStores() {
+  try { return JSON.parse(localStorage.getItem('blog_stores') || '{}'); }
+  catch { return {}; }
+}
+function saveStores(data) {
+  localStorage.setItem('blog_stores', JSON.stringify(data));
+}
+
+function saveCurrentStore() {
+  const name = document.getElementById('store-name').value.trim();
+  if (!name) { showToast('상호명을 먼저 입력해주세요', '#c9843a'); return; }
+  const stores = getSavedStores();
+  stores[name] = {
+    name,
+    keyword: document.getElementById('keyword').value.trim(),
+    placeUrl: document.getElementById('place-url').value.trim(),
+    savedAt: new Date().toLocaleDateString('ko-KR')
+  };
+  saveStores(stores);
+  showToast(`"${name}" 저장 완료 ✓`);
+  renderSavedList();
+}
+
+function loadStore(name) {
+  const stores = getSavedStores();
+  const s = stores[name];
+  if (!s) return;
+  document.getElementById('store-name').value = s.name || '';
+  document.getElementById('keyword').value = s.keyword || '';
+  document.getElementById('place-url').value = s.placeUrl || '';
+  document.getElementById('saved-list').classList.remove('show');
+  // 저장된 업체 불러오면 자동으로 최신 정보 재검색
+  showToast(`"${name}" 불러옴 · 업체 정보 자동 갱신 중...`, '#4a8fb5');
+  setTimeout(() => searchStoreInfo(), 400);
+}
+
+function deleteStore(name, e) {
+  e.stopPropagation();
+  if (!confirm(`"${name}" 삭제하시겠어요?`)) return;
+  const stores = getSavedStores();
+  delete stores[name];
+  saveStores(stores);
+  renderSavedList();
+}
+
+function renderSavedList() {
+  const stores = getSavedStores();
+  const container = document.getElementById('saved-list-items');
+  const keys = Object.keys(stores);
+  if (keys.length === 0) {
+    container.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text-dim);">저장된 업체가 없습니다</div>';
+    return;
+  }
+  container.innerHTML = keys.map(k => `
+    <div class="saved-item" onclick="loadStore('${k}')">
+      <div>
+        <div class="saved-item-name">${k}</div>
+        <div class="saved-item-meta">${stores[k].savedAt || ''} · ${stores[k].keyword || ''}</div>
+      </div>
+      <div class="saved-item-del" onclick="deleteStore('${k}',event)">삭제</div>
+    </div>
+  `).join('');
+}
+
+function toggleSavedList() {
+  const el = document.getElementById('saved-list');
+  renderSavedList();
+  el.classList.toggle('show');
+}
+
+function onStoreNameInput() {
+  // 상호명 변경 시 업체 정보 패널 초기화
+}
+
+// ═══════════════════════════════════════════════
+// 업체 정보 자동검색
+// ═══════════════════════════════════════════════
+async function searchStoreInfo() {
+  const name = document.getElementById('store-name').value.trim();
+  const kw = document.getElementById('keyword').value.trim();
+  if (!name) { showToast('상호명을 입력해주세요', '#c9843a'); return; }
+
+  const btn = document.getElementById('search-btn');
+  btn.disabled = true; btn.classList.add('loading');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:800,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        system:`맛집 정보 조사 전문가입니다. 웹검색으로 업체 최신 정보를 파악해 아래 형식으로 간결하게 정리하세요.
+없는 정보는 "정보없음"으로 표기. 추측 금지.
+
+위치: 
+운영시간: 
+정기휴무: 
+주차: 
+주요메뉴 (가격 포함 가능): 
+업체 특징/히스토리: 
+최근 이슈/변동사항:`,
+        messages:[{role:'user',content:`"${name}" 맛집의 최신 정보를 검색해주세요. 관련 키워드: ${kw}`}]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+
+    document.getElementById('store-info-editable').value = text;
+    document.getElementById('search-timestamp').textContent = '방금 갱신';
+    document.getElementById('store-info-panel').classList.add('show');
+
+  } catch(err) {
+    showToast('검색 오류: ' + err.message, '#c9843a');
+  } finally {
+    btn.disabled = false; btn.classList.remove('loading');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// 사진 업로드
+// ═══════════════════════════════════════════════
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e=>{e.preventDefault();zone.classList.add('drag-over');});
+zone.addEventListener('dragleave', ()=>zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e=>{e.preventDefault();zone.classList.remove('drag-over');handleFiles(e.dataTransfer.files);});
+
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    if (uploadedImages.length >= 25) { showToast('최대 25장까지 업로드 가능합니다', '#c9843a'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      uploadedImages.push({ name: file.name, dataUrl: e.target.result });
+      renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPreviews() {
+  const container = document.getElementById('image-previews');
+  const zone = document.getElementById('upload-zone');
+  const countEl = document.getElementById('image-count');
+  container.innerHTML = '';
+
+  if (uploadedImages.length > 0) {
+    zone.classList.add('has-files');
+    uploadedImages.forEach((img, i) => {
+      const item = document.createElement('div');
+      item.className = 'preview-item';
+      item.innerHTML = `
+        <img src="${img.dataUrl}" alt="${img.name}">
+        <div class="order-badge">${i+1}</div>
+        <button class="remove-btn" onclick="removeImage(${i})">✕</button>
+      `;
+      container.appendChild(item);
+    });
+    countEl.innerHTML = `<div class="upload-count-badge">✓ ${uploadedImages.length}장 업로드됨</div>`;
+  } else {
+    zone.classList.remove('has-files');
+    countEl.innerHTML = '';
+  }
+}
+
+function removeImage(idx) { uploadedImages.splice(idx,1); renderPreviews(); }
+
+// ═══════════════════════════════════════════════
+// UI 토글
+// ═══════════════════════════════════════════════
+function selectType(type) {
+  currentType = type;
+  ['smartblock','popular','cafe'].forEach(t => {
+    document.getElementById('type-'+t).classList.toggle('selected', t===type);
+  });
+  document.getElementById('sb-area').classList.toggle('show', type==='smartblock');
+  if (type==='cafe') {
+    document.getElementById('length').value='1000';
+    document.getElementById('photo-style').value='2lines';
+    document.getElementById('upload-hint').textContent='카페용: 사진 9~10장 권장';
+  } else {
+    document.getElementById('upload-hint').textContent='JPG, PNG 여러 장 · 최대 25장';
+  }
+}
+
+function selectStyle(el) {
+  document.querySelectorAll('.option-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentStyle = el.dataset.val;
+}
+
+function selectOrder(el, val) {
+  document.querySelectorAll('.order-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentOrder = val;
+}
+
+const conceptMap = {
+  '친구 따라 방문': '강릉 사는 친구 추천으로 같이 방문했어요',
+  '가족 여행 중': '가족 여행 중 현지인이 추천해줘서 들렀어요',
+  '연인과 데이트': '연인과 강릉 데이트 중에 들린 맛집이에요',
+  '혼자 출장': '혼자 출장 왔다가 숙소 사장님 추천으로 찾아갔어요',
+  '현지인 추천': '현지 지인이 강릉 오면 꼭 가라고 해서 방문했어요',
+  '재방문': '전에 너무 맛있어서 이번에 또 찾아온 재방문이에요',
+  'SNS 보고 방문': '인스타에서 사진 보고 검색해서 직접 찾아갔어요',
+  '지인 생일 모임': '지인 생일 기념으로 다 같이 방문했어요',
+  '회사 팀회식': '팀회식 장소로 예약해서 동료들이랑 갔어요',
+  '부모님 모시고': '부모님 모시고 특별한 한 끼 먹으러 찾아갔어요',
+  '여행 마지막 날': '강릉 여행 마지막 날 아쉬운 마음에 들렀어요',
+  '숙소 근처 찾다가': '숙소 근처에서 검색하다가 평점 좋길래 들어갔어요'
+};
+function setConcept(el) {
+  document.getElementById('concept').value = conceptMap[el.textContent.trim()] || el.textContent.trim();
+}
+
+// ═══════════════════════════════════════════════
+// 모달 관련
+// ═══════════════════════════════════════════════
+let pendingGenerate = false; // 모달 확인 후 생성 대기 플래그
+
+function closeModal() {
+  document.getElementById('topic-modal').classList.remove('show');
+}
+
+function confirmTopicAndGenerate() {
+  const selected = document.querySelector('.topic-modal-chip.selected');
+  const manualInput = document.getElementById('modal-topic-input').value.trim();
+  const topic = manualInput || (selected ? selected.textContent : '');
+  if (topic) {
+    document.getElementById('sb-topic').value = topic;
+    selectType('smartblock');
+  }
+  closeModal();
+  runGenerate();
+}
+
+function proceedWithoutTopic() {
+  closeModal();
+  runGenerate();
+}
+
+async function showNaverTopicModal(keyword) {
+  // 모달 열기 + 로딩 표시
+  document.getElementById('topic-modal-chips').innerHTML = '<div style="font-size:12px;color:var(--text-dim);">검색 중...</div>';
+  document.getElementById('modal-raw-text').textContent = '';
+  document.getElementById('modal-topic-input').value = document.getElementById('sb-topic').value || '';
+  document.getElementById('topic-modal').classList.add('show');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        system:`네이버 블로그 SEO 전문가입니다. 주어진 키워드를 네이버에서 검색했을 때 현재 노출되는 스마트블럭 주제와 상위 블로그 패턴을 분석하세요.
+
+반드시 아래 형식으로만 응답하세요:
+
+[현재 노출 중인 스마트블럭 주제]
+• 주제1
+• 주제2
+• 주제3
+
+[상위 블로그 글 패턴]
+- 제목 패턴:
+- 주요 키워드 배치:
+- 특이사항:
+
+[원고 작성 추천 방향]
+한두 줄로 간결하게`,
+        messages:[{role:'user',content:`"${keyword}" 네이버 모바일 통합검색 기준 스마트블럭 노출 주제와 상위 블로그 패턴을 분석해주세요.`}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+
+    document.getElementById('modal-raw-text').textContent = text;
+
+    // 주제 칩 추출
+    const topics = text.match(/•\s*(.+)/g);
+    const chipsEl = document.getElementById('topic-modal-chips');
+    if (topics && topics.length) {
+      chipsEl.innerHTML = topics.map(t => {
+        const label = t.replace(/^•\s*/,'').trim();
+        return `<div class="topic-modal-chip" onclick="selectModalChip(this)">${label}</div>`;
+      }).join('');
+    } else {
+      chipsEl.innerHTML = '<div style="font-size:12px;color:var(--text-dim);">현재 검색 결과에서 주제를 자동 추출하지 못했어요. 직접 입력해주세요.</div>';
+    }
+  } catch(err) {
+    document.getElementById('topic-modal-chips').innerHTML = `<div style="font-size:12px;color:#c9843a;">검색 오류: ${err.message}</div>`;
+  }
+}
+
+function selectModalChip(el) {
+  document.querySelectorAll('.topic-modal-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('modal-topic-input').value = el.textContent;
+}
+
+// ═══════════════════════════════════════════════
+// 원고 생성
+// ═══════════════════════════════════════════════
+async function generateArticle() {
+  if (!checkApiKey()) return;
+  const storeName = document.getElementById('store-name').value.trim();
+  const keyword = document.getElementById('keyword').value.trim();
+
+  if (!storeName || !keyword) { showToast('상호명과 주 키워드를 입력해주세요', '#c9843a'); return; }
+  if (uploadedImages.length === 0) { showToast('사진을 1장 이상 업로드해주세요', '#c9843a'); return; }
+
+  // 스마트블럭용이면 모달 먼저
+  if (currentType === 'smartblock') {
+    await showNaverTopicModal(keyword);
+    return; // 모달에서 confirmTopicAndGenerate() 또는 proceedWithoutTopic() 호출로 이어짐
+  }
+
+  runGenerate();
+}
+
+async function runGenerate() {
+  const storeName = document.getElementById('store-name').value.trim();
+  const keyword = document.getElementById('keyword').value.trim();
+  const concept = document.getElementById('concept').value.trim();
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ 원고 생성 중...';
+
+  const progressArea = document.getElementById('progress-area');
+  progressArea.classList.add('show');
+  document.getElementById('result-area').classList.remove('show');
+
+  const steps = [
+    [10, '업체 정보 정리 중...'],
+    [currentOrder==='auto' ? 30 : 20, currentOrder==='auto' ? '사진 내용 분석 및 순서 배열 중...' : '사진 분석 중...'],
+    [55, '원고 구성 중...'],
+    [75, '문체 다듬는 중...'],
+    [90, '키워드 배치 검수 중...'],
+  ];
+  let si = 0;
+  const iv = setInterval(() => {
+    if (si < steps.length) {
+      document.getElementById('progress-bar').style.width = steps[si][0] + '%';
+      document.getElementById('progress-label-text').textContent = steps[si][1];
+      si++;
+    }
+  }, 1400);
+
+  try {
+    const length = document.getElementById('length').value;
+    const photoStyleVal = document.getElementById('photo-style').value;
+    const storeInfo = document.getElementById('store-info-editable').value.trim();
+    const extraMemo = document.getElementById('extra-memo').value.trim();
+    const sbTopic = document.getElementById('sb-topic').value.trim();
+    const placeUrl = document.getElementById('place-url').value.trim();
+
+    const photoStyleDesc = {
+      '2lines':'사진 한 장당 2~3줄씩 간결하게',
+      'free':'사진 내용에 따라 자유롭게',
+      '4lines':'사진 한 장당 4~5줄씩 상세하게'
+    }[photoStyleVal];
+
+    const styleDesc = {
+      '존댓말':'~했어요, ~더라고요, ~거든요 구어체 존댓말',
+      '반말':'~했음, ~이었음, ~더라 반말',
+      '혼합':'존댓말 기반 자연스럽게 혼합'
+    }[currentStyle];
+
+    const orderInstruction = currentOrder === 'auto'
+      ? `사진 ${uploadedImages.length}장을 먼저 모두 분석한 뒤, 블로그 원고 흐름에 최적화된 순서로 재배열하세요.
+일반적 흐름: 외관·입구 → 내부·분위기 → 메뉴판 → 음식 클로즈업 → 다양한 메뉴 → 디저트·음료 → 마무리
+원고 내 첫 줄에 "[사진 배열 순서: N-N-N...]" 형식으로 배열 순서를 명시하세요.`
+      : `업로드된 순서 그대로 사진1~사진${uploadedImages.length} 순으로 작성하세요.`;
+
+    // ── 스마트블럭용 전용 포맷 (실제 원고 예시 기반) ──
+    const smartblockFormat = `
+당신은 네이버 블로그 스마트블럭 상위노출 원고 작성 전문가입니다.
+아래 포맷을 한 글자도 빠짐없이 그대로 지켜서 작성하세요.
+
+═══════════════════════════════
+스마트블럭 원고 필수 포맷
+═══════════════════════════════
+
+## 반드시 이 순서와 구조 그대로 출력
+
+제목 : [주 키워드 그대로 사용. 예: "강릉 로컬 맛집 현지인만 아는 강릉 로컬 맛집 참피온양념치킨"]
+
+대표이미지 : [사진 중 음식이 가장 잘 보이는 번호 1개 선택. 예: 14번]
+
+해시태그 : [업체명 기반 핵심 태그 1개. 예: 강릉로컬맛집]
+
+
+
+본 포스팅은 해당업체로부터 원고료를 지급받아 작성되었습니다.
+
+
+
+
+[주 키워드 전체 문장] < 인용구 넣어주세요
+[주 키워드 전체 문장] < 인용구 넣어주세요
+[주 키워드 전체 문장] < 인용구 넣어주세요
+
+
+
+
+[도입부: 3~5줄. 어떻게 이 업체에 가게 됐는지 자연스러운 상황. 노출주제와 업체를 자연스럽게 연결. 마지막 줄에 주 키워드를 한 번 더 자연스럽게 녹임]
+
+
+
+지도 : [업체명]
+
+[업체명]
+
+주소 : [주소]
+연락처 : [연락처 또는 빈칸]
+영업시간 : [영업시간 또는 빈칸]
+
+
+
+
+(인용구) 1. [소제목]
+
+사진[N]
+[2줄 설명. 감각적으로. "맛있다"로 끝내지 말고 식감·향·온도로 풀기]
+
+사진[N]
+[2줄 설명]
+
+(인용구) 2. [소제목]
+
+사진[N]
+[2줄 설명]
+
+... (사진 수에 맞게 소제목 3~7개로 묶어서 계속)
+
+
+
+
+[마무리: 2~3줄. 이 업체를 다시 찾고 싶다는 감정 또는 추천 이유. 주 키워드 자연스럽게 1회 포함]
+
+[주 키워드 전체 문장] < 따옴표 인용구 넣어주세요
+
+영상[마지막사진번호+1] (제목 내용에 [주 키워드] 넣어주세요)
+
+링크 : ${placeUrl || '[네이버 플레이스 링크]'}
+
+#[해시태그1] #[해시태그2] #[해시태그3] #[업체명] #[지역맛집] #[업종태그] #[기타태그]
+
+═══════════════════════════════
+
+## 포맷 준수 규칙
+- 위 포맷의 모든 구분선, 빈 줄, 순서를 정확히 지킬 것
+- 키워드 인용구 3줄 반복은 반드시 동일 문장 3번
+- "(인용구)" 는 소제목 앞에 매번 붙일 것
+- 사진 설명은 사진 번호 바로 아래 붙여서 2줄씩 (카페용은 1~2줄)
+- 볼드(**) 절대 금지
+- 이모지 절대 금지
+- "맛있어요", "강추", "숨은 맛집" 등 광고성 표현 금지
+- ㅋㅋ 전체 2~3번만
+
+## 노출 주제 처리
+- 노출 주제: ${sbTopic||'(주 키워드에서 추출)'}
+- 제목은 "[노출주제] [부연설명] [업체명]" 형식
+- 도입부에서 노출 주제를 자연스럽게 연결
+- 본문에서 노출 주제 관련 키워드 2~3회 추가 배치
+
+## 사진 처리
+- ${orderInstruction}
+- 사진에 없는 내용 창작 금지
+- 업체 정보(메뉴명·가격·특징)로 사진 설명 보완 가능
+
+## 맛 표현
+- 식감: "씹을 때마다", "겉은 바삭하고 안은", "결을 따라 부드럽게"
+- 향미: "구수한", "달큰한", "짭조름하면서도"
+- 온도: "김이 모락모락", "열기가 채 식지 않은"
+
+글자수 목표: ${length}자 (단, 포맷 구조는 글자수보다 우선)`;
+
+    // ── 인기글/카페용 포맷 ──
+    const standardFormat = `당신은 네이버 블로그 맛집 원고 작성 전문가입니다.
+
+## 원고 유형: ${currentType === 'cafe' ? '카페용' : '맛집 인기글용'}
+${currentType === 'cafe' ? `- 글자수 900~1,000자 엄수\n- 키워드 7~9회 삽입\n- 사진당 1~2줄, 정보 중심` : `- 주 키워드를 제목에 2회 이상, 본문 전반에 배분\n- 정보성 + 개인 후기 균형`}
+
+## 사진 처리
+- ${orderInstruction}
+- 사진 위치표시자 형식: 사진N (예: 사진1, 사진2)
+- 사진에 없는 내용 창작 금지
+
+## 문체 규칙
+- ${styleDesc}
+- 한 문단 3~4줄, 볼드(**) 금지, 이모지 금지
+- ㅋㅋ 전체 2~3번만, 광고성·AI 티 나는 표현 금지
+
+## 글 구조
+제목 → 도입부(방문 컨셉) → 본문(사진 순서대로 소제목+설명) → 마무리 2~3줄 → 해시태그 5~7개
+${placeUrl ? `마지막에 플레이스 링크: ${placeUrl}` : ''}
+
+## 맛 표현
+"맛있다"로 끝내지 말고 감각으로 풀기.
+
+글자수 목표: ${length}자`;
+
+    const systemPrompt = currentType === 'smartblock' ? smartblockFormat : standardFormat;
+
+
+    const imageContents = uploadedImages.slice(0, 25).map(img => ({
+      type:'image',
+      source:{
+        type:'base64',
+        media_type: img.dataUrl.match(/data:(image\/\w+)/)[1],
+        data: img.dataUrl.split(',')[1]
+      }
+    }));
+
+    const userText = `상호명: ${storeName}
+주 키워드: ${keyword}
+원고 유형: ${{smartblock:'스마트블럭용',popular:'맛집인기글용',cafe:'카페용'}[currentType]}
+${currentType==='smartblock'&&sbTopic?`노출 주제: ${sbTopic}`:''}
+방문 컨셉: ${concept||'자연스럽게 설정해주세요'}
+사진 정렬: ${currentOrder==='auto'?'AI 자동 배열':'업로드 순서 유지'}
+${storeInfo?`\n[업체 정보]\n${storeInfo}`:''}
+${extraMemo?`\n[추가 메모]\n${extraMemo}`:''}
+
+사진 ${imageContents.length}장으로 네이버 블로그 원고를 작성해주세요.`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:5000,
+        system:systemPrompt,
+        messages:[{role:'user',content:[...imageContents,{type:'text',text:userText}]}]
+      })
+    });
+
+    clearInterval(iv);
+    document.getElementById('progress-bar').style.width='100%';
+    document.getElementById('progress-label-text').textContent='완성!';
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message||'생성 실패');
+    }
+
+    const data = await res.json();
+    const text = data.content.map(b=>b.text||'').join('');
+
+    setTimeout(() => {
+      progressArea.classList.remove('show');
+      document.getElementById('result-text').value = text;
+      document.getElementById('result-area').classList.add('show');
+      updateCharCount();
+      document.getElementById('result-area').scrollIntoView({behavior:'smooth'});
+    }, 400);
+
+  } catch(err) {
+    clearInterval(iv);
+    progressArea.classList.remove('show');
+    showToast('오류: ' + err.message, '#c9843a');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✦ 원고 자동 생성';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// 유틸
+// ═══════════════════════════════════════════════
+function updateCharCount() {
+  const text = document.getElementById('result-text').value;
+  document.getElementById('char-count-bar').innerHTML =
+    `공백 제외 <span>${text.replace(/\s/g,'').length.toLocaleString()}자</span> &nbsp;·&nbsp; 전체 <span>${text.length.toLocaleString()}자</span>`;
+}
+
+function copyText() {
+  navigator.clipboard.writeText(document.getElementById('result-text').value)
+    .then(() => showToast('클립보드에 복사되었습니다 ✓'));
+}
+
+function downloadTxt() {
+  const text = document.getElementById('result-text').value;
+  const storeName = document.getElementById('store-name').value || '원고';
+  const typeLabel = {smartblock:'스마트블럭',popular:'인기글',cafe:'카페'}[currentType];
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${storeName}_${typeLabel}_원고.txt`;
+  a.click();
+}
+
+function resetAll() {
+  document.getElementById('result-area').classList.remove('show');
+  document.getElementById('result-text').value = '';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showToast(msg, bg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = bg || 'var(--success)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
