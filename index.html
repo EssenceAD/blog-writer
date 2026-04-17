@@ -157,8 +157,6 @@ select option{background:var(--surface2);}
 #result-text{width:100%;background:transparent;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:300;padding:18px;outline:none;resize:none;min-height:500px;line-height:1.9;}
 
 /* 토스트 */
-.api-key-saved{border-color:var(--success) !important;}
-.api-key-saved .card-title{color:var(--success) !important;}
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--success);color:white;padding:9px 18px;border-radius:99px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;z-index:100;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
@@ -202,37 +200,23 @@ select option{background:var(--surface2);}
   <p>업체 저장/불러오기 · 네이버 노출 주제 파악 · 사진 자동 순서 배열</p>
 </div>
 
-<!-- API 키 입력 -->
-<div class="card" id="api-key-card">
-  <div class="card-title">API 키 설정</div>
-  <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
-    Anthropic API 키를 입력하면 이 브라우저에 저장돼요. 다음에 접속할 때 자동으로 불러와요.<br>
-    키 발급: <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a>
-  </div>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <input type="password" id="api-key-input" placeholder="sk-ant-..." style="flex:1;" oninput="onApiKeyInput()">
-    <button class="icon-btn" onclick="saveApiKey()" id="api-save-btn" style="white-space:nowrap;height:38px;color:var(--text-muted);">저장</button>
-  </div>
-  <div id="api-key-status" style="font-size:11px;margin-top:8px;"></div>
-</div>
-
 <!-- ① 원고 유형 -->
 <div class="card">
   <div class="card-title">원고 유형 선택</div>
   <div class="type-grid">
-    <div class="type-card" id="type-smartblock">
+    <div class="type-card" onclick="selectType('smartblock')" id="type-smartblock">
       <div class="dot"></div>
       <div class="ti">🧩</div>
       <div class="tn">스마트블럭용</div>
       <div class="td">특정 주제 스마트블럭 상위노출 타깃</div>
     </div>
-    <div class="type-card selected"  id="type-popular">
+    <div class="type-card selected" onclick="selectType('popular')" id="type-popular">
       <div class="dot"></div>
       <div class="ti">⭐</div>
       <div class="tn">맛집 인기글용</div>
       <div class="td">모통 주 키워드 기준 인기글 노출</div>
     </div>
-    <div class="type-card"  id="type-cafe">
+    <div class="type-card" onclick="selectType('cafe')" id="type-cafe">
       <div class="dot"></div>
       <div class="ti">☕</div>
       <div class="tn">카페용</div>
@@ -437,79 +421,6 @@ let currentStyle = '존댓말';
 let currentType = 'popular';
 let currentOrder = 'manual';
 
-// ── API 키 관리 ──
-function getApiKey() {
-  return localStorage.getItem('anthropic_api_key') || '';
-}
-
-function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key.startsWith('sk-ant-')) {
-    showToast('올바른 API 키 형식이 아니에요 (sk-ant-로 시작)', '#c9843a');
-    return;
-  }
-  localStorage.setItem('anthropic_api_key', key);
-  updateApiKeyUI(key);
-  showToast('API 키가 저장되었습니다 ✓');
-}
-
-function onApiKeyInput() {
-  const key = document.getElementById('api-key-input').value.trim();
-  const btn = document.getElementById('api-save-btn');
-  btn.style.borderColor = key.startsWith('sk-ant-') ? 'var(--success)' : 'var(--border)';
-}
-
-function updateApiKeyUI(key) {
-  const card = document.getElementById('api-key-card');
-  const status = document.getElementById('api-key-status');
-  const input = document.getElementById('api-key-input');
-  if (key) {
-    card.classList.add('api-key-saved');
-    status.innerHTML = '<span style="color:var(--success)">✓ API 키 저장됨 — ' + key.substring(0,12) + '...</span> <button onclick="clearApiKey()" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer;margin-left:8px;">삭제</button>';
-    input.value = key;
-    input.type = 'password';
-  } else {
-    card.classList.remove('api-key-saved');
-    status.textContent = '';
-  }
-}
-
-function clearApiKey() {
-  localStorage.removeItem('anthropic_api_key');
-  document.getElementById('api-key-input').value = '';
-  updateApiKeyUI('');
-  showToast('API 키가 삭제되었습니다');
-}
-
-function checkApiKey() {
-  const key = getApiKey();
-  if (!key) {
-    showToast('먼저 API 키를 입력하고 저장해주세요', '#c9843a');
-    document.getElementById('api-key-input').focus();
-    document.getElementById('api-key-card').scrollIntoView({behavior:'smooth'});
-    return false;
-  }
-  return true;
-}
-
-// 원고 유형 카드 클릭 이벤트 (onclick 대신 addEventListener로 확실하게)
-document.addEventListener('DOMContentLoaded', function() {
-  // 원고 유형 카드 클릭
-  ['smartblock','popular','cafe'].forEach(type => {
-    const el = document.getElementById('type-' + type);
-    if (el) {
-      el.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        selectType(type);
-      });
-    }
-  });
-  // 저장된 API 키 불러오기
-  const savedKey = getApiKey();
-  if (savedKey) updateApiKeyUI(savedKey);
-});
-
 // ═══════════════════════════════════════════════
 // 업체 저장/불러오기 (localStorage)
 // ═══════════════════════════════════════════════
@@ -601,7 +512,7 @@ async function searchStoreInfo() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:800,
@@ -657,27 +568,18 @@ function handleFiles(files) {
 
 function renderPreviews() {
   const container = document.getElementById('image-previews');
-  const zone = document.getElementById('upload-zone');
-  const countEl = document.getElementById('image-count');
   container.innerHTML = '';
-
-  if (uploadedImages.length > 0) {
-    zone.classList.add('has-files');
-    uploadedImages.forEach((img, i) => {
-      const item = document.createElement('div');
-      item.className = 'preview-item';
-      item.innerHTML = `
-        <img src="${img.dataUrl}" alt="${img.name}">
-        <div class="order-badge">${i+1}</div>
-        <button class="remove-btn" onclick="removeImage(${i})">✕</button>
-      `;
-      container.appendChild(item);
-    });
-    countEl.innerHTML = `<div class="upload-count-badge">✓ ${uploadedImages.length}장 업로드됨</div>`;
-  } else {
-    zone.classList.remove('has-files');
-    countEl.innerHTML = '';
-  }
+  uploadedImages.forEach((img, i) => {
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+    item.innerHTML = `
+      <img src="${img.dataUrl}" alt="${img.name}">
+      <div class="order-badge">${i+1}</div>
+      <button class="remove-btn" onclick="removeImage(${i})">✕</button>
+    `;
+    container.appendChild(item);
+  });
+  document.getElementById('image-count').textContent = uploadedImages.length > 0 ? `${uploadedImages.length}장 선택됨` : '';
 }
 
 function removeImage(idx) { uploadedImages.splice(idx,1); renderPreviews(); }
@@ -766,7 +668,7 @@ async function showNaverTopicModal(keyword) {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:1000,
@@ -821,7 +723,6 @@ function selectModalChip(el) {
 // 원고 생성
 // ═══════════════════════════════════════════════
 async function generateArticle() {
-  if (!checkApiKey()) return;
   const storeName = document.getElementById('store-name').value.trim();
   const keyword = document.getElementById('keyword').value.trim();
 
@@ -843,8 +744,9 @@ async function runGenerate() {
   const concept = document.getElementById('concept').value.trim();
 
   const btn = document.getElementById('submit-btn');
-  btn.disabled = true; btn.textContent = '⏳ 원고 생성 중...';
+  btn.disabled = true; btn.textContent = '생성 중...';
 
+  const concept = document.getElementById('concept').value.trim();
   const progressArea = document.getElementById('progress-area');
   progressArea.classList.add('show');
   document.getElementById('result-area').classList.remove('show');
@@ -1022,6 +924,7 @@ ${placeUrl ? `마지막에 플레이스 링크: ${placeUrl}` : ''}
 
     const systemPrompt = currentType === 'smartblock' ? smartblockFormat : standardFormat;
 
+글자수 목표: ${length}자`;
 
     const imageContents = uploadedImages.slice(0, 25).map(img => ({
       type:'image',
@@ -1045,7 +948,7 @@ ${extraMemo?`\n[추가 메모]\n${extraMemo}`:''}
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:5000,
