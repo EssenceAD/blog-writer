@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_5.html -->
+<!-- saved from url=(0052)file:///C:/Users/choly/Downloads/blog-writer-v4.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -215,18 +215,36 @@ select option{background:var(--surface2);}
   <p>업체 저장/불러오기 · 네이버 노출 주제 파악 · 사진 자동 순서 배열</p>
 </div>
 
-<!-- API 키 입력 -->
-<div class="card" id="api-key-card">
-  <div class="card-title">API 키 설정</div>
-  <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
-    Anthropic API 키를 입력하면 이 브라우저에 저장돼요. 다음에 접속할 때 자동으로 불러와요.<br>
-    키 발급: <a href="https://console.anthropic.com/" target="_blank" style="color:var(--accent);">console.anthropic.com</a>
+<!-- 로그인 영역 -->
+<div class="card" id="auth-card">
+  <div class="card-title">로그인</div>
+  <div id="auth-logged-out">
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">로그인하면 원고를 생성할 수 있어요. 무료 플랜은 월 3건 제공됩니다.</div>
+    <div class="field-row" style="margin-bottom:10px;">
+      <div class="field-group" style="margin-bottom:0;">
+        <label>이메일</label>
+        <input type="email" id="auth-email" placeholder="이메일 입력">
+      </div>
+      <div class="field-group" style="margin-bottom:0;">
+        <label>비밀번호</label>
+        <input type="password" id="auth-password" placeholder="비밀번호 입력">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="icon-btn" onclick="doLogin()" style="flex:1;justify-content:center;">로그인</button>
+      <button class="icon-btn" onclick="doSignup()" style="flex:1;justify-content:center;">회원가입</button>
+    </div>
+    <div id="auth-error" style="font-size:12px;color:#ff6b6b;margin-top:8px;"></div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <input type="password" id="api-key-input" placeholder="sk-ant-..." style="flex:1;" oninput="onApiKeyInput()">
-    <button class="icon-btn" onclick="saveApiKey()" id="api-save-btn" style="white-space:nowrap;height:38px;color:var(--text-muted);">저장</button>
+  <div id="auth-logged-in" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:13px;color:var(--text);" id="auth-user-email"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="auth-usage-info"></div>
+      </div>
+      <button class="icon-btn" onclick="doLogout()" style="font-size:12px;">로그아웃</button>
+    </div>
   </div>
-  <div id="api-key-status" style="font-size:11px;margin-top:8px;"></div>
 </div>
 
 <!-- ① 원고 유형 -->
@@ -457,56 +475,96 @@ let currentStyle = '존댓말';
 let currentType = 'smartblock';
 const currentOrder = 'manual'; // 항상 순서 유지
 
-// ── API 키 관리 ──
-function getApiKey() {
-  return localStorage.getItem('anthropic_api_key') || '';
+// ── 서버 URL ──
+const SERVER_URL = 'https://postmate-server-g0b06zdyz-cholybrown-2398s-projects.vercel.app';
+
+// ── 인증 관리 ──
+function getToken() {
+  return localStorage.getItem('postmate_token') || '';
 }
 
-function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key.startsWith('sk-ant-')) {
-    showToast('올바른 API 키 형식이 아니에요 (sk-ant-로 시작)', '#c9843a');
-    return;
-  }
-  localStorage.setItem('anthropic_api_key', key);
-  updateApiKeyUI(key);
-  showToast('API 키가 저장되었습니다 ✓');
-}
+async function doLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+  if (!email || !password) { showAuthError('이메일과 비밀번호를 입력해주세요'); return; }
 
-function onApiKeyInput() {
-  const key = document.getElementById('api-key-input').value.trim();
-  const btn = document.getElementById('api-save-btn');
-  btn.style.borderColor = key.startsWith('sk-ant-') ? 'var(--success)' : 'var(--border)';
-}
-
-function updateApiKeyUI(key) {
-  const card = document.getElementById('api-key-card');
-  const status = document.getElementById('api-key-status');
-  const input = document.getElementById('api-key-input');
-  if (key) {
-    card.classList.add('api-key-saved');
-    status.innerHTML = '<span style="color:var(--success)">✓ API 키 저장됨 — ' + key.substring(0,12) + '...</span> <button onclick="clearApiKey()" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer;margin-left:8px;">삭제</button>';
-    input.value = key;
-    input.type = 'password';
-  } else {
-    card.classList.remove('api-key-saved');
-    status.textContent = '';
+  try {
+    const res = await fetch(SERVER_URL + '/api/auth', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action: 'login', email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showAuthError(data.error); return; }
+    localStorage.setItem('postmate_token', data.token);
+    localStorage.setItem('postmate_email', data.user.email);
+    updateAuthUI(true, data.user.email);
+    loadUsage();
+    showToast('로그인 성공 ✓');
+  } catch(e) {
+    showAuthError('서버 연결 오류');
   }
 }
 
-function clearApiKey() {
-  localStorage.removeItem('anthropic_api_key');
-  document.getElementById('api-key-input').value = '';
-  updateApiKeyUI('');
-  showToast('API 키가 삭제되었습니다');
+async function doSignup() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+  if (!email || !password) { showAuthError('이메일과 비밀번호를 입력해주세요'); return; }
+  if (password.length < 6) { showAuthError('비밀번호는 6자 이상이어야 해요'); return; }
+
+  try {
+    const res = await fetch(SERVER_URL + '/api/auth', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action: 'signup', email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showAuthError(data.error); return; }
+    showToast('가입 완료! 이메일을 확인해주세요 ✓');
+  } catch(e) {
+    showAuthError('서버 연결 오류');
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('postmate_token');
+  localStorage.removeItem('postmate_email');
+  updateAuthUI(false);
+  showToast('로그아웃되었습니다');
+}
+
+function updateAuthUI(loggedIn, email) {
+  document.getElementById('auth-logged-out').style.display = loggedIn ? 'none' : 'block';
+  document.getElementById('auth-logged-in').style.display = loggedIn ? 'block' : 'none';
+  if (email) document.getElementById('auth-user-email').textContent = email;
+}
+
+function showAuthError(msg) {
+  document.getElementById('auth-error').textContent = msg;
+}
+
+async function loadUsage() {
+  const token = getToken();
+  if (!token) return;
+  try {
+    const res = await fetch(SERVER_URL + '/api/auth', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
+      body: JSON.stringify({ action: 'usage' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      const planLabel = {free:'무료',starter:'스타터',pro:'프로',agency:'대행사'}[data.plan] || data.plan;
+      document.getElementById('auth-usage-info').textContent = `${planLabel} 플랜 · 이번 달 ${data.used}/${data.limit}건 사용`;
+    }
+  } catch(e) {}
 }
 
 function checkApiKey() {
-  const key = getApiKey();
-  if (!key) {
-    showToast('먼저 API 키를 입력하고 저장해주세요', '#c9843a');
-    document.getElementById('api-key-input').focus();
-    document.getElementById('api-key-card').scrollIntoView({behavior:'smooth'});
+  const token = getToken();
+  if (!token) {
+    showToast('먼저 로그인해주세요', '#c9843a');
+    document.getElementById('auth-card').scrollIntoView({behavior:'smooth'});
     return false;
   }
   return true;
@@ -525,9 +583,13 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   });
-  // 저장된 API 키 불러오기
-  const savedKey = getApiKey();
-  if (savedKey) updateApiKeyUI(savedKey);
+  // 로그인 상태 복원
+  const savedToken = getToken();
+  const savedEmail = localStorage.getItem('postmate_email');
+  if (savedToken && savedEmail) {
+    updateAuthUI(true, savedEmail);
+    loadUsage();
+  }
 });
 
 // ═══════════════════════════════════════════════
@@ -621,7 +683,7 @@ async function searchStoreInfo() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json','x-api-key': (()=>{const k=localStorage.getItem('anthropic_api_key');return k||'';})(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-sonnet-4-5',
         max_tokens:800,
@@ -1218,14 +1280,19 @@ ${autoOrderPrefix}
 [사진 설명 목록]
 ${imgs.map((img,i) => img.desc ? `사진${i+1}: ${img.desc}` : `사진${i+1}: (설명 없음)`).join('\n')}`;
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(SERVER_URL + '/api/generate', {
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + getToken()
+      },
       body:JSON.stringify({
-        model:'claude-sonnet-4-5',
-        max_tokens:5000,
-        system:systemPrompt,
-        messages:[{role:'user',content:[...imageContents,{type:'text',text:userText}]}]
+        systemPrompt,
+        userText,
+        images: imgs.map(img => ({
+          media_type: img.dataUrl.match(/data:(image\/\w+)/)[1],
+          data: img.dataUrl.split(',')[1]
+        }))
       })
     });
 
@@ -1234,11 +1301,12 @@ ${imgs.map((img,i) => img.desc ? `사진${i+1}: ${img.desc}` : `사진${i+1}: (�
     document.getElementById('progress-label-text').textContent='완성!';
 
     const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error?.message||'생성 실패 ('+res.status+')');
+    if (!res.ok) throw new Error(data.error||'생성 실패');
+    const text = data.text || '';
+    if (data.usage) {
+      document.getElementById('auth-usage-info').textContent =
+        `이번 달 ${data.usage.used}/${data.usage.limit}건 사용`;
     }
-    if (!data.content) throw new Error('응답에 content가 없습니다');
-    const text = (data.content||[]).map(b=>b.text||'').join('');
 
     setTimeout(() => {
       progressArea.classList.remove('show');
