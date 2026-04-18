@@ -189,6 +189,21 @@ select option{background:var(--surface2);}
 .modal-skip:hover{border-color:var(--accent2);color:var(--text);}
 .modal-confirm{background:var(--accent);border:none;color:#0e0d0b;padding:9px 20px;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
 .modal-confirm:hover{background:#e8b84a;}
+/* 사진 설명 리스트 */
+.photo-desc-list{margin-top:16px;display:none;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.photo-desc-list.show{display:block;}
+.photo-desc-header{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;color:var(--accent);letter-spacing:.1em;font-weight:500;}
+.photo-desc-item{display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg);}
+.photo-desc-item:last-child{border-bottom:none;}
+.photo-desc-item:hover{background:var(--surface2);}
+.photo-desc-thumb{width:48px;height:48px;border-radius:5px;overflow:hidden;flex-shrink:0;border:1px solid var(--border);}
+.photo-desc-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.photo-desc-num{font-size:11px;color:var(--accent);font-weight:500;font-family:monospace;min-width:40px;flex-shrink:0;}
+.photo-desc-input{flex:1;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:"Noto Sans KR",sans-serif;font-size:12px;font-weight:300;padding:4px 0;outline:none;transition:border-color .2s;}
+.photo-desc-input:focus{border-bottom-color:var(--accent);}
+.photo-desc-input::placeholder{color:var(--text-dim);}
+.photo-desc-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:2px 6px;transition:color .15s;flex-shrink:0;}
+.photo-desc-del:hover{color:#ff6b6b;}
 </style>
 </head>
 <body>
@@ -377,6 +392,12 @@ select option{background:var(--surface2);}
 
   <div class="image-previews" id="image-previews"></div>
   <div class="image-count" id="image-count"></div>
+
+  <!-- 사진 설명 입력 리스트 -->
+  <div class="photo-desc-list" id="photo-desc-list">
+    <div class="photo-desc-header">사진 설명 입력 <span style="color:var(--text-dim);font-weight:300;text-transform:none;letter-spacing:0;">(선택사항 · 작성하면 원고 품질이 올라가요)</span></div>
+    <div id="photo-desc-items"></div>
+  </div>
 </div>
 
 <button class="submit-btn" id="submit-btn" onclick="generateArticle()">
@@ -693,11 +714,15 @@ function renderPreviews() {
   const container = document.getElementById('image-previews');
   const zone = document.getElementById('upload-zone');
   const countEl = document.getElementById('image-count');
+  const descList = document.getElementById('photo-desc-list');
+  const descItems = document.getElementById('photo-desc-items');
   container.innerHTML = '';
+  descItems.innerHTML = '';
 
   if (uploadedImages.length > 0) {
     zone.classList.add('has-files');
     uploadedImages.forEach((img, i) => {
+      // 썸네일 그리드
       const item = document.createElement('div');
       item.className = 'preview-item';
       item.innerHTML = `
@@ -706,11 +731,28 @@ function renderPreviews() {
         <button class="remove-btn" onclick="removeImage(${i})">✕</button>
       `;
       container.appendChild(item);
+
+      // 설명 입력 리스트
+      const descItem = document.createElement('div');
+      descItem.className = 'photo-desc-item';
+      descItem.innerHTML = `
+        <div class="photo-desc-thumb"><img src="${img.dataUrl}" alt=""></div>
+        <div class="photo-desc-num">사진${i+1}</div>
+        <input class="photo-desc-input" type="text" placeholder="예: 외관, 메뉴판, 삼겹살 굽는 중..." 
+          value="${img.desc||''}" 
+          oninput="uploadedImages[${i}].desc=this.value" 
+          id="desc-${i}">
+        <button class="photo-desc-del" onclick="removeImage(${i})" title="삭제">✕</button>
+      `;
+      descItems.appendChild(descItem);
     });
+
     countEl.innerHTML = `<div class="upload-count-badge">✓ ${uploadedImages.length}장 업로드됨</div>`;
+    descList.classList.add('show');
   } else {
     zone.classList.remove('has-files');
     countEl.innerHTML = '';
+    descList.classList.remove('show');
   }
 }
 
@@ -1106,7 +1148,10 @@ ${extraMemo?`
 ${extraMemo}`:''}
 ${autoOrderPrefix}
 
-사진 ${imgs.length}장으로 네이버 블로그 원고를 작성해주세요.`;
+사진 ${imgs.length}장으로 네이버 블로그 원고를 작성해주세요.
+
+[사진 설명 목록]
+${imgs.map((img,i) => img.desc ? `사진${i+1}: ${img.desc}` : `사진${i+1}: (설명 없음)`).join('\n')}`;
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
