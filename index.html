@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_3.html -->
+<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_5.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -375,9 +375,9 @@ select option{background:var(--surface2);}
     <input type="file" id="photo-input" multiple="" accept="image/*" onchange="handleFiles(this.files)">
     <div class="upload-icon">📷</div>
     <div class="upload-text"><strong>클릭해서 사진 선택</strong> 또는 드래그</div>
-    <div class="upload-hint" id="upload-hint">JPG, PNG 여러 장 · 최대 25장</div>
+    <div class="upload-hint" id="upload-hint">JPG, PNG 여러 장 · 최대 30장</div>
     <div style="margin-top:10px;font-size:11px;color:var(--text-muted);line-height:1.8;text-align:left;padding:10px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);">
-      📌 <strong style="color:var(--accent);font-weight:500;">사진 업로드 전 확인</strong> <span style="color:var(--text-dim);font-weight:300;">최대 20장</span><br>
+      📌 <strong style="color:var(--accent);font-weight:500;">사진 업로드 전 확인</strong> <span style="color:var(--text-dim);font-weight:300;">최대 30장</span><br>
       · 사진 파일명에 번호를 지정해서 순서대로 업로드해주세요 <span style="color:var(--accent);">(필수)</span><br>
       &nbsp;&nbsp;예: 1.jpg, 2.jpg, 3.jpg ... 또는 01_외관.jpg, 02_메뉴판.jpg<br>
       · 파일명에 사진 설명을 넣으면 원고 품질이 올라가요 <span style="color:var(--text-dim);">(선택)</span><br>
@@ -770,9 +770,9 @@ function selectType(type) {
   if (type==='cafe') {
     document.getElementById('length').value='1000';
     document.getElementById('photo-style').value='2lines';
-    document.getElementById('upload-hint').textContent='카페용: 사진 9~10장 권장 (최대 20장)';
+    document.getElementById('upload-hint').textContent='카페용: 사진 9~10장 권장 (최대 30장)';
   } else {
-    document.getElementById('upload-hint').textContent='JPG, PNG 여러 장 · 최대 25장';
+    document.getElementById('upload-hint').textContent='JPG, PNG 여러 장 · 최대 30장';
   }
 }
 
@@ -1180,7 +1180,7 @@ ${placeUrl ? `마지막에 플레이스 링크: ${placeUrl}` : ''}
 
 
     // 사진 번호를 명시하며 전송 - 각 사진 사이에 번호 텍스트 삽입
-    const imgs = uploadedImages.slice(0, 25);
+    const imgs = uploadedImages.slice(0, 30);
     const imageContents = [];
     imgs.forEach((img, i) => {
       // 각 사진 앞에 번호 텍스트 삽입
