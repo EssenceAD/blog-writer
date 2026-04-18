@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_1.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>맛집 블로그 원고 작성기 v3</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="./맛집 블로그 원고 작성기 v3_files/css2" rel="stylesheet">
 <style>
 :root {
   --bg:#0e0d0b; --surface:#171614; --surface2:#1f1d1a; --border:#2e2b26;
@@ -220,7 +220,7 @@ select option{background:var(--surface2);}
   <div class="card-title">API 키 설정</div>
   <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
     Anthropic API 키를 입력하면 이 브라우저에 저장돼요. 다음에 접속할 때 자동으로 불러와요.<br>
-    키 발급: <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a>
+    키 발급: <a href="https://console.anthropic.com/" target="_blank" style="color:var(--accent);">console.anthropic.com</a>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <input type="password" id="api-key-input" placeholder="sk-ant-..." style="flex:1;" oninput="onApiKeyInput()">
@@ -239,13 +239,13 @@ select option{background:var(--surface2);}
       <div class="tn">스마트블럭용</div>
       <div class="td">특정 주제 스마트블럭 상위노출 타깃</div>
     </div>
-    <div class="type-card selected"  id="type-popular">
+    <div class="type-card selected" id="type-popular">
       <div class="dot"></div>
       <div class="ti">⭐</div>
       <div class="tn">맛집 인기글용</div>
       <div class="td">모통 주 키워드 기준 인기글 노출</div>
     </div>
-    <div class="type-card"  id="type-cafe">
+    <div class="type-card" id="type-cafe">
       <div class="dot"></div>
       <div class="ti">☕</div>
       <div class="tn">카페용</div>
@@ -340,7 +340,7 @@ select option{background:var(--surface2);}
 
 <!-- ⑤ 문체 & 설정 -->
 <div class="card">
-  <div class="card-title">문체 & 설정</div>
+  <div class="card-title">문체 &amp; 설정</div>
   <label style="margin-bottom:10px;">문체 스타일</label>
   <div class="option-grid" style="margin-bottom:16px;">
     <div class="option-chip selected" onclick="selectStyle(this)" data-val="존댓말">존댓말<br><small style="font-size:10px;color:var(--text-dim)">~했어요, ~더라고요</small></div>
@@ -352,7 +352,7 @@ select option{background:var(--surface2);}
       <label>글자수 목표</label>
       <select id="length">
         <option value="1000">1,000자</option>
-        <option value="1500" selected>1,500자</option>
+        <option value="1500" selected="">1,500자</option>
         <option value="2000">2,000자</option>
         <option value="2500">2,500자</option>
       </select>
@@ -372,19 +372,19 @@ select option{background:var(--surface2);}
 <div class="card">
   <div class="card-title">사진 업로드</div>
   <div class="upload-zone" id="upload-zone">
-    <input type="file" id="photo-input" multiple accept="image/*" onchange="handleFiles(this.files)">
+    <input type="file" id="photo-input" multiple="" accept="image/*" onchange="handleFiles(this.files)">
     <div class="upload-icon">📷</div>
     <div class="upload-text"><strong>클릭해서 사진 선택</strong> 또는 드래그</div>
     <div class="upload-hint" id="upload-hint">JPG, PNG 여러 장 · 최대 25장</div>
     <div style="margin-top:10px;font-size:11px;color:var(--text-muted);line-height:1.8;text-align:left;padding:10px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);">
-      📌 <strong style="color:var(--accent);font-weight:500;">사진 업로드 전 확인</strong> <span style='color:var(--text-dim);font-weight:300;'>최대 20장</span><br>
+      📌 <strong style="color:var(--accent);font-weight:500;">사진 업로드 전 확인</strong> <span style="color:var(--text-dim);font-weight:300;">최대 20장</span><br>
       · 사진 파일명에 번호를 지정해서 순서대로 업로드해주세요 <span style="color:var(--accent);">(필수)</span><br>
       &nbsp;&nbsp;예: 1.jpg, 2.jpg, 3.jpg ... 또는 01_외관.jpg, 02_메뉴판.jpg<br>
       · 파일명에 사진 설명을 넣으면 원고 품질이 올라가요 <span style="color:var(--text-dim);">(선택)</span><br>
       &nbsp;&nbsp;예: 05_삼겹살굽는중.jpg, 12_김치찌개.jpg
     </div>
   </div>
-  <button type="button" onclick="document.getElementById('photo-input').click()" style="margin-top:8px;width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:9px;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
+  <button type="button" onclick="document.getElementById(&#39;photo-input&#39;).click()" style="margin-top:8px;width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:9px;border-radius:6px;font-family:&#39;Noto Sans KR&#39;,sans-serif;font-size:12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor=&#39;var(--accent)&#39;;this.style.color=&#39;var(--accent)&#39;" onmouseout="this.style.borderColor=&#39;var(--border)&#39;;this.style.color=&#39;var(--text-muted)&#39;">
     📁 파일 탐색기에서 사진 선택
   </button>
 
@@ -972,7 +972,7 @@ async function runGenerate() {
 
 
 
-(인용구) 1. [소제목]
+(인용구) 1. [주 키워드 포함 소제목. 예: "강릉 로컬 맛집의 외관과 주차"]
 
 사진[N]
 [2줄 설명. 감각적으로. "맛있다"로 끝내지 말고 식감·향·온도로 풀기]
@@ -980,7 +980,7 @@ async function runGenerate() {
 사진[N]
 [2줄 설명]
 
-(인용구) 2. [소제목]
+(인용구) 2. [주 키워드 포함 소제목. 예: "강릉 로컬 맛집에서 만난 푸짐한 상차림"]
 
 사진[N]
 [2줄 설명]
@@ -1011,6 +1011,24 @@ async function runGenerate() {
 - 이모지 절대 금지
 - "맛있어요", "강추", "숨은 맛집" 등 광고성 표현 금지
 - ㅋㅋ 전체 2~3번만
+
+## 키워드 배치 규칙 (매우 중요)
+주 키워드를 아래 위치에 반드시 자연스럽게 삽입할 것:
+- 제목: 주 키워드 포함 (필수)
+- 도입부: 마지막 문장에 1회 (필수)
+- 소제목: 3개 이상의 소제목에 주 키워드 포함 (필수)
+  예시: "(인용구) 3. 강릉 로컬 맛집의 시그니처 삼겹살"
+  예시: "(인용구) 5. 강릉 로컬 맛집에서 즐기는 흑돼지 쌈"
+- 본문 중간: 자연스러운 문장 흐름 안에서 2~3회 추가
+  예시: "이곳이 강릉 로컬 맛집으로 소문난 이유가 한 입에 이해됐어요"
+- 마무리: 1회 (필수)
+총 키워드 등장 횟수: 최소 8회 이상
+
+## 업체 정보 처리 규칙
+지도 섹션의 주소/연락처/영업시간은 반드시 실제 정보로 채울 것.
+[업체 정보]가 제공된 경우 → 해당 정보에서 추출해서 입력
+[업체 정보 없음]인 경우 → 웹검색으로 찾아서 입력
+정보를 찾지 못한 경우에만 빈칸으로 남길 것
 
 ## 문체 규칙 (반드시 준수)
 - 문체: ${styleDesc}
@@ -1089,6 +1107,14 @@ ${currentType === 'cafe' ? `- 글자수 900~1,000자 엄수\n- 키워드 7~9회 
 ## 글 구조
 제목 → 도입부(방문 컨셉) → 본문(사진 순서대로 소제목+설명) → 마무리 2~3줄 → 해시태그 5~7개
 ${placeUrl ? `마지막에 플레이스 링크: ${placeUrl}` : ''}
+
+## 키워드 배치 (인기글 상위노출 필수)
+- 제목: 주 키워드 2회 이상
+- 도입부: 1회
+- 소제목: 3개 이상에 주 키워드 포함 (예: "강릉 맛집의 푸짐한 상차림")
+- 본문 중간: 자연스러운 문장 안에 2~3회
+- 마무리: 1회
+총 최소 8회 이상 등장
 
 ## 도입부 공식
 상황(어떻게 오게 됐는지) → 기대감 → 첫인상 순서로 시작
@@ -1232,5 +1258,6 @@ function showToast(msg, bg) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 </script>
-</body>
-</html>
+
+
+</body></html>
