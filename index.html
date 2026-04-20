@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_6.html -->
+<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_7.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -454,6 +454,7 @@ select option{background:var(--surface2);}
     <div class="result-actions">
       <button class="action-btn" onclick="resetAll()">↺ 새 원고</button>
       <button class="action-btn" onclick="copyText()">⎘ 복사</button>
+      <button class="action-btn" onclick="refineText()" id="refine-btn">✦ 원고 다듬기</button>
       <button class="action-btn primary" onclick="downloadTxt()">↓ TXT 다운로드</button>
     </div>
   </div>
@@ -1062,20 +1063,46 @@ async function runGenerate() {
 
 
 
-(인용구) 1. [주 키워드 포함 소제목. 예: "강릉 로컬 맛집의 외관과 주차"]
-
-사진[N]
-[2줄 설명. 감각적으로. "맛있다"로 끝내지 말고 식감·향·온도로 풀기]
+(인용구) 1. [소제목 — 주 키워드 포함]
 
 사진[N]
 [2줄 설명]
-
-(인용구) 2. [주 키워드 포함 소제목. 예: "강릉 로컬 맛집에서 만난 푸짐한 상차림"]
-
+사진[N]
+[2줄 설명]
 사진[N]
 [2줄 설명]
 
-... (사진 수에 맞게 소제목 3~7개로 묶어서 계속)
+(인용구) 2. [소제목 — 주 키워드 포함]
+
+사진[N]
+[2줄 설명]
+사진[N]
+[2줄 설명]
+
+(인용구) 3. [소제목]
+
+사진[N]
+[2줄 설명]
+사진[N]
+[2줄 설명]
+사진[N]
+[2줄 설명]
+
+(인용구) 4. [소제목 — 주 키워드 포함]
+
+사진[N]
+[2줄 설명]
+사진[N]
+[2줄 설명]
+
+(인용구) 5. [소제목]
+
+사진[N]
+[2줄 설명]
+사진[N]
+[2줄 설명]
+
+※ 소제목은 반드시 5개만 사용. 전체 사진을 5개 구간에 균형있게 배분할 것.
 
 
 
@@ -1383,6 +1410,55 @@ function updateCharCount() {
 function copyText() {
   navigator.clipboard.writeText(document.getElementById('result-text').value)
     .then(() => showToast('클립보드에 복사되었습니다 ✓'));
+}
+
+async function refineText() {
+  const text = document.getElementById('result-text').value.trim();
+  if (!text) { showToast('다듬을 원고가 없어요', '#c9843a'); return; }
+
+  const btn = document.getElementById('refine-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 다듬는 중...';
+
+  try {
+    const res = await fetch(SERVER_URL + '/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + getToken()
+      },
+      body: JSON.stringify({
+        systemPrompt: `당신은 10년 경력의 맛집 블로그 전문 에디터입니다.
+아래 원고를 다듬어주세요.
+
+## 다듬기 규칙
+- 반복되는 표현 찾아서 다양하게 교체
+- 어색한 접속사(~하고요, ~이고요 반복) 자연스럽게 수정
+- 문장 흐름이 끊기는 부분 매끄럽게 연결
+- 원고 구조(사진 번호, 소제목, 포맷)는 절대 변경하지 말 것
+- 내용 추가/삭제 금지. 표현만 다듬을 것
+- 문체(존댓말/반말) 그대로 유지
+- 글자수 크게 변하지 않도록 유지`,
+        userText: `아래 원고를 위 규칙에 따라 다듬어주세요. 원고 구조와 포맷은 그대로 유지하세요.
+
+${text}`,
+        images: []
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '다듬기 실패');
+
+    document.getElementById('result-text').value = data.text || text;
+    updateCharCount();
+    showToast('원고 다듬기 완료 ✓');
+
+  } catch(err) {
+    showToast('오류: ' + err.message, '#c9843a');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ 원고 다듬기';
+  }
 }
 
 function downloadTxt() {
