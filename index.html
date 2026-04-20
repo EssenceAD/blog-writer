@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_4.html -->
+<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_6.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -703,7 +703,7 @@ async function searchStoreInfo() {
   const kw = document.getElementById('keyword').value.trim();
   if (!name) { showToast('상호명을 입력해주세요', '#c9843a'); return; }
 
-  const btn = document.getElementById('search-btn');
+  const btn = null; // search-btn 제거됨
   btn.disabled = true; btn.classList.add('loading');
 
   try {
@@ -731,9 +731,9 @@ async function searchStoreInfo() {
     const data = await res.json();
     const text = (data.content||[]).filter(b=>b&&b.type==='text').map(b=>b.text||'').join('');
 
-    document.getElementById('store-info-editable').value = text;
-    document.getElementById('search-timestamp').textContent = '방금 갱신';
-    document.getElementById('store-info-panel').classList.add('show');
+    // store-info-editable 제거됨
+    // search-timestamp 제거됨
+    // store-info-panel 제거됨
 
   } catch(err) {
     showToast('검색 오류: ' + err.message, '#c9843a');
@@ -986,7 +986,7 @@ async function runGenerate() {
   try {
     const length = document.getElementById('length').value;
     const photoStyleVal = document.getElementById('photo-style').value;
-    const storeInfo = document.getElementById('store-info-editable').value.trim();
+    const storeInfo = '';
     const extraMemo = document.getElementById('extra-memo').value.trim();
     const sbTopic = document.getElementById('sb-topic').value.trim();
     const placeUrl = document.getElementById('place-url').value.trim();
