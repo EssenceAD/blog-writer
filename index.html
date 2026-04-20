@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_9.html -->
+<!-- saved from url=(0055)file:///C:/Users/choly/Downloads/blog-writer-v4_10.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1428,7 +1428,16 @@ ${imgs.map((img,i) => img.desc ? `사진${i+1}: ${img.desc}` : `사진${i+1}: (�
     document.getElementById('progress-label-text').textContent='완성!';
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error||'생성 실패');
+    if (!res.ok) {
+      if (res.status === 401) {
+        // 토큰 만료 - 자동 로그아웃 처리
+        localStorage.removeItem('postmate_token');
+        localStorage.removeItem('postmate_email');
+        updateAuthUI(false);
+        throw new Error('로그인이 만료됐어요. 다시 로그인해주세요.');
+      }
+      throw new Error(data.error||'생성 실패');
+    }
     const text = data.text || '';
     if (data.usage) {
       document.getElementById('auth-usage-info').textContent =
@@ -1502,7 +1511,15 @@ ${text}`,
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || '다듬기 실패');
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('postmate_token');
+        localStorage.removeItem('postmate_email');
+        updateAuthUI(false);
+        throw new Error('로그인이 만료됐어요. 다시 로그인해주세요.');
+      }
+      throw new Error(data.error || '다듬기 실패');
+    }
 
     document.getElementById('result-text').value = data.text || text;
     updateCharCount();
