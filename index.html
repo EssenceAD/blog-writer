@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_8.html -->
+<!-- saved from url=(0054)file:///C:/Users/choly/Downloads/blog-writer-v4_9.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -218,7 +218,7 @@ select option{background:var(--surface2);}
 <!-- 로그인 영역 -->
 <div class="card" id="auth-card">
   <div class="card-title">로그인</div>
-  <div id="auth-logged-out">
+  <div id="auth-logged-out" style="display: none;">
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">로그인하면 원고를 생성할 수 있어요. 무료 플랜은 월 3건 제공됩니다.</div>
     <div class="field-row" style="margin-bottom:10px;">
       <div class="field-group" style="margin-bottom:0;">
@@ -236,10 +236,10 @@ select option{background:var(--surface2);}
     </div>
     <div id="auth-error" style="font-size:12px;color:#ff6b6b;margin-top:8px;"></div>
   </div>
-  <div id="auth-logged-in" style="display:none;">
+  <div id="auth-logged-in" style="display: block;">
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div>
-        <div style="font-size:13px;color:var(--text);" id="auth-user-email"></div>
+        <div style="font-size:13px;color:var(--text);" id="auth-user-email">cholybrown@naver.com</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="auth-usage-info"></div>
       </div>
       <button class="icon-btn" onclick="doLogout()" style="font-size:12px;">로그아웃</button>
@@ -1125,9 +1125,11 @@ async function runGenerate() {
 - "(인용구)" 는 소제목 앞에 매번 붙일 것
 - 사진 설명은 사진 번호 바로 아래 붙여서 2줄씩
 - 볼드(**) 절대 금지
+- # ## 헤더 절대 금지
 - 이모지 절대 금지
 - "맛있어요", "강추", "숨은 맛집" 등 광고성 표현 금지
 - ㅋㅋ 전체 2~3번만
+- 마크다운 문법(**, ##, >, ---, []) 일체 사용 금지
 
 ## 키워드 배치 규칙 (상위노출 핵심 — 반드시 준수)
 주 키워드를 아래 위치에 반드시 자연스럽게 삽입할 것:
@@ -1256,6 +1258,7 @@ ${currentType === 'cafe' ? `- 글자수 900~1,000자 엄수\n- 키워드 7~9회 
 전화번호 : [연락처]
 영업시간 : [영업시간]
 주문메뉴: [메뉴명 및 가격]
+[지도삽입]
 
 사진[N]
 [1~2줄 설명]
@@ -1302,9 +1305,20 @@ ${currentType === 'cafe' ? `- 글자수 900~1,000자 엄수\n- 키워드 7~9회 
 
 ## 문체 (${styleDesc})
 - 존댓말/반말 선택된 문체 일관되게 유지
-- 볼드(**) 금지, 이모지 금지
 - ㅋㅋ 전체 2~3번만
 - 광고성 표현 금지: "강력 추천", "꼭 가봐야 할", "숨은 맛집"
+
+## 마크다운 절대 금지 (매우 중요)
+아래 마크다운 문법을 원고에 절대 사용하지 말 것:
+- ** 볼드 ** 절대 금지 (예: **사진1** → 사진1 으로만 쓸 것)
+- # ## ### 헤더 절대 금지 (소제목은 그냥 텍스트로만)
+- > 인용 절대 금지
+- --- 구분선 절대 금지
+- [ ] 대괄호 형식 금지 (링크 형식)
+네이버 블로그에 그대로 붙여넣는 원고라 마크다운이 들어가면 안 됩니다.
+소제목은 텍스트만: "제주도 고기국수 맛집 메인메뉴" (## 절대 없이)
+잘못된 예: ## 제주도 고기국수 맛집 메인메뉴
+올바른 예: 제주도 고기국수 맛집 메인메뉴
 
 ## 도입부 공식 (매우 중요)
 독자가 공감할 수 있는 구체적인 상황 → 방문 계기 → 첫인상
