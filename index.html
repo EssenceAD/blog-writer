@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/choly/Downloads/blog-writer-v4_12.html -->
+<!-- saved from url=(0055)file:///C:/Users/choly/Downloads/blog-writer-v4_13.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -768,8 +768,8 @@ function handleFiles(files) {
   if (sortedFiles.length === 0) return;
 
   sortedFiles.forEach((file, idx) => {
-    if (uploadedImages.length + idx >= 25) {
-      showToast('최대 25장까지 업로드 가능합니다', '#c9843a');
+    if (uploadedImages.length + idx >= 30) {
+      showToast('최대 30장까지 업로드 가능합니다', '#c9843a');
       return;
     }
     const reader = new FileReader();
