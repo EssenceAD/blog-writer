@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/choly/Downloads/blog-writer-v4_16.html -->
+<!-- saved from url=(0055)file:///C:/Users/choly/Downloads/blog-writer-v4_17.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1367,6 +1367,9 @@ ${currentType === 'cafe' ? `- 글자수 900~1,000자 엄수\n- 키워드 7~9회 
 - 메인 메뉴·음식 클로즈업·핵심 장면: 2~3줄
 - 사진 위치표시자: 사진N (예: 사진1, 사진2)
 - 업체 정보(주소·가격·메뉴명)는 창작 금지
+- 주변 풍경·시장·거리 사진: 단순 설명으로 끝내지 말고 방문 맥락·감정·기대감으로 연결할 것
+  예: "중앙시장 입구부터 사람들로 북적였어요." (X)
+  예: "중앙시장 입구부터 사람들이 가득했어요. 여행 와서 시장 구경하는 기분이 이래서 좋더라고요." (O)
 
 ## 본문 사진 설명 품질 기준
 
@@ -1448,7 +1451,10 @@ ${currentType === 'cafe' ? `- 글자수 900~1,000자 엄수\n- 키워드 7~9회 
 
 ${placeUrl ? `마지막에 플레이스 링크: ${placeUrl}` : ''}
 
-글자수 목표: ${length}자`;
+글자수 목표: ${length}자 (반드시 준수. 부족하면 각 사진 설명을 더 풍성하게 늘릴 것)
+- 목표 글자수의 90% 이상 반드시 채울 것
+- 사진 설명이 짧아서 글자수가 부족하면 → 설명을 1~2줄 더 추가
+- 절대로 글자수를 채우기 위해 의미없는 문장을 넣지 말 것. 사진 설명을 더 구체적으로`;
 
     const systemPrompt = currentType === 'smartblock' ? smartblockFormat : standardFormat;
 
